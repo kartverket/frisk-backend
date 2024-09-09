@@ -53,6 +53,15 @@ fun Route.functionRoutes() {
                     FunctionService.deleteFunction(id)
                     call.respond(HttpStatusCode.NoContent)
                 }
+                get("/children") {
+                    val id = call.parameters["id"]?.toInt()
+                    if (id == null) {
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                        return@get
+                    }
+                    val children = FunctionService.getChildren(id)
+                    call.respond(children)
+                }
             }
         }
     }

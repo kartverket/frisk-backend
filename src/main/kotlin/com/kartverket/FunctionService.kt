@@ -43,6 +43,21 @@ object FunctionService {
         }
     }
 
+    fun getChildren(id: Int): List<Function> {
+        val functions = mutableListOf<Function>()
+        val query = "SELECT * FROM functions WHERE parent_id = ?"
+        Database.getConnection().use { connection ->
+            connection.prepareStatement(query).use {statement ->
+                statement.setInt(1, id)
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    functions.add(resultSet.toFunction())
+                }
+            }
+        }
+        return functions
+    }
+
     fun createFunction(newFunction: CreateFunctionDto): Boolean {
         val query = "INSERT INTO functions (name, parent_id) VALUES (?, ?)"
         Database.getConnection().use { connection ->
