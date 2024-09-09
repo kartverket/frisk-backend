@@ -7,10 +7,10 @@ import kotlinx.serialization.Serializable
 data class Function(val id: Int, val name: String, val parentId: Int, val path: String)
 
 @Serializable
-data class CreateFunctionDao(val name: String, val parentId: Int)
+data class CreateFunctionDto(val name: String, val parentId: Int)
 
 @Serializable
-data class UpdateFunctionDao(val name: String? = null, val parentId: Int? = null)
+data class UpdateFunctionDto(val name: String? = null, val parentId: Int? = null)
 
 object FunctionService {
 
@@ -43,7 +43,7 @@ object FunctionService {
         }
     }
 
-    fun createFunction(newFunction: CreateFunctionDao): Boolean {
+    fun createFunction(newFunction: CreateFunctionDto): Boolean {
         val query = "INSERT INTO functions (name, parent_id) VALUES (?, ?)"
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
@@ -54,7 +54,7 @@ object FunctionService {
         }
     }
 
-    fun updateFunction(id: Int, updatedFields: UpdateFunctionDao): Boolean {
+    fun updateFunction(id: Int, updatedFields: UpdateFunctionDto): Boolean {
         val fields = mutableListOf<String>()
         val query = buildString {
             append("UPDATE functions SET ")

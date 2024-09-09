@@ -13,7 +13,7 @@ fun Route.functionRoutes() {
             call.respond(funcs)
         }
         post {
-            val newFunction = call.receive<CreateFunctionDao>()
+            val newFunction = call.receive<CreateFunctionDto>()
             FunctionService.createFunction(newFunction)
             call.respond(HttpStatusCode.NoContent)
         }
@@ -37,7 +37,7 @@ fun Route.functionRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                     return@patch
                 }
-                val updatedFunction = call.receive<UpdateFunctionDao>()
+                val updatedFunction = call.receive<UpdateFunctionDto>()
                 FunctionService.updateFunction(id, updatedFunction)
                 call.respond(HttpStatusCode.NoContent)
 
