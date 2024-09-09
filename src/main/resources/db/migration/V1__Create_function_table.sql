@@ -56,4 +56,4 @@ FOR EACH ROW
 EXECUTE FUNCTION prevent_cycle_and_set_path();
 
 -- Ensure root node exists
-INSERT INTO functions (id, name, parent_id, path) VALUES (1, 'Root', NULL, '1') ON CONFLICT (id) DO NOTHING;
+INSERT INTO functions (name, parent_id) VALUES ('Kartverket', NULL) ON CONFLICT (id) DO NOTHING;
