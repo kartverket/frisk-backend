@@ -1,4 +1,4 @@
-package com.kartverket
+package com.kartverket.functions
 
 import io.ktor.http.*
 import io.ktor.server.application.*

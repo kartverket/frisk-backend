@@ -1,5 +1,6 @@
-package com.kartverket
+package com.kartverket.functions
 
+import com.kartverket.Database
 import java.sql.ResultSet
 import kotlinx.serialization.Serializable
 

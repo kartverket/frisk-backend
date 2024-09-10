@@ -1,4 +1,4 @@
-package com.kartverket
+package com.kartverket.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

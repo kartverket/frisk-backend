@@ -1,8 +1,10 @@
 package com.kartverket
 
-import io.ktor.http.*
+import com.kartverket.plugins.configureAuth
+import com.kartverket.plugins.configureCors
+import com.kartverket.plugins.configureRouting
+import com.kartverket.plugins.configureSerialization
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.routing.*
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -13,13 +15,8 @@ fun Application.module() {
     Database.initDatabase(config)
     Database.migrate(config)
 
-    install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader(HttpHeaders.ContentType)
-    }
-
     configureSerialization()
+    configureCors()
     configureAuth()
     configureRouting()
 
