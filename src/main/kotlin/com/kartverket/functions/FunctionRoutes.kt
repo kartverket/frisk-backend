@@ -16,8 +16,12 @@ fun Route.functionRoutes() {
             }
             post {
                 val newFunction = call.receive<CreateFunctionDto>()
-                FunctionService.createFunction(newFunction)
-                call.respond(HttpStatusCode.NoContent)
+                val f = FunctionService.createFunction(newFunction)
+                if (f == null) {
+                    call.respond(HttpStatusCode.InternalServerError)
+                    return@post
+                }
+                call.respond(f)
             }
             route("/{id}") {
                 get {
@@ -40,8 +44,12 @@ fun Route.functionRoutes() {
                         return@patch
                     }
                     val updatedFunction = call.receive<UpdateFunctionDto>()
-                    FunctionService.updateFunction(id, updatedFunction)
-                    call.respond(HttpStatusCode.NoContent)
+                    val f = FunctionService.updateFunction(id, updatedFunction)
+                    if (f == null) {
+                        call.respond(HttpStatusCode.InternalServerError)
+                        return@patch
+                    }
+                    call.respond(f)
 
                 }
                 delete {

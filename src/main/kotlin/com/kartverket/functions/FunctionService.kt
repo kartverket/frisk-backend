@@ -59,30 +59,34 @@ object FunctionService {
         return functions
     }
 
-    fun createFunction(newFunction: CreateFunctionDto): Boolean {
-        val query = "INSERT INTO functions (name, parent_id) VALUES (?, ?)"
+    fun createFunction(newFunction: CreateFunctionDto): Function? {
+        val query = "INSERT INTO functions (name, parent_id) VALUES (?, ?) RETURNING *"
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, newFunction.name)
                 statement.setInt(2, newFunction.parentId)
-                return statement.executeUpdate() > 0
+                val resultSet = statement.executeQuery()
+                if (!resultSet.next()) {
+                    return null
+                }
+                return resultSet.toFunction()
             }
         }
     }
 
-    fun updateFunction(id: Int, updatedFields: UpdateFunctionDto): Boolean {
+    fun updateFunction(id: Int, updatedFields: UpdateFunctionDto): Function? {
         val fields = mutableListOf<String>()
         val query = buildString {
             append("UPDATE functions SET ")
             if (updatedFields.name != null) fields.add("name = ?")
             if (updatedFields.parentId != null) fields.add("parent_id = ?")
             append(fields.joinToString(", "))
-            append(" WHERE id = ?")
+            append(" WHERE id = ? RETURNING *")
         }
 
         if (fields.isEmpty()) {
             // No fields to update, you might want to handle this case
-            return false
+            return null
         }
 
         Database.getConnection().use { connection ->
@@ -95,7 +99,11 @@ object FunctionService {
                     statement.setInt(paramIndex++, updatedFields.parentId)
                 }
                 statement.setInt(paramIndex, id)
-                return statement.executeUpdate() > 0
+                val resultSet = statement.executeQuery()
+                if (!resultSet.next()) {
+                    return null
+                }
+                return resultSet.toFunction()
             }
         }
     }
