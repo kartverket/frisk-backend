@@ -4,6 +4,7 @@ CREATE EXTENSION IF NOT EXISTS ltree;
 CREATE TABLE functions (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
+    description TEXT,
     parent_id INTEGER,
     path ltree, -- Using the ltree extension for path tracking
 
