@@ -17,7 +17,7 @@ object Database {
             val dbUri = URI(databaseUrl)
             val username = dbUri.userInfo.split(":")[0]
             val password = dbUri.userInfo.split(":")[1]
-            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}&ssl=false&sslmode=disable"
+            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
 
             hikariConfig.apply {
                 this.jdbcUrl = jdbcUrl
@@ -59,7 +59,7 @@ object Database {
             val dbUri = URI(databaseUrl)
             val username = dbUri.userInfo.split(":")[0]
             val password = dbUri.userInfo.split(":")[1]
-            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=require"
+            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
 
             flywayConfig.dataSource(jdbcUrl, username, password)
         } else {
