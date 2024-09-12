@@ -5,15 +5,22 @@ import com.kartverket.plugins.configureCors
 import com.kartverket.plugins.configureRouting
 import com.kartverket.plugins.configureSerialization
 import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.util.logging.*
 
-fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
+fun main() {
+    embeddedServer(
+        Netty,
+        port = 8080,
+        host = "0.0.0.0",
+        module = Application::module,
+    ).start(wait = true)
 }
 
 fun Application.module() {
-    val config = environment.config
-    Database.initDatabase(config)
-    Database.migrate(config)
+    Database.initDatabase()
+    Database.migrate()
 
     configureSerialization()
     configureCors()
