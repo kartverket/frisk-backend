@@ -37,21 +37,6 @@ fun Route.functionRoutes() {
                     }
                     call.respond(f)
                 }
-                patch {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
-                        return@patch
-                    }
-                    val updatedFunction = call.receive<UpdateFunctionDto>()
-                    val f = FunctionService.updateFunction(id, updatedFunction)
-                    if (f == null) {
-                        call.respond(HttpStatusCode.InternalServerError)
-                        return@patch
-                    }
-                    call.respond(f)
-
-                }
                 delete {
                     val id = call.parameters["id"]?.toInt()
                     if (id == null) {
