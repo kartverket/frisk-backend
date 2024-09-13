@@ -29,7 +29,7 @@ object Database {
             // Local development environment
             val jdbcUrl = "jdbc:postgresql://localhost:5432/frisk-backend-db"
             val username = "postgres"
-            val password = "" // No password
+            val password = ""
 
             hikariConfig.apply {
                 this.jdbcUrl = jdbcUrl
@@ -66,7 +66,7 @@ object Database {
             // Local development environment
             val jdbcUrl = "jdbc:postgresql://localhost:5432/frisk-backend-db"
             val username = "postgres"
-            val password = "" // No password
+            val password = "" 
 
             flywayConfig.dataSource(jdbcUrl, username, password)
         }
