@@ -12,12 +12,21 @@ data class CreateFunctionDto(val name: String, val description: String? = null, 
 
 object FunctionService {
 
-    fun getAllFunctions(): List<Function> {
+    fun getFunctions(search: String? = null): List<Function> {
         val functions = mutableListOf<Function>()
-        val query = "SELECT * FROM functions"
+        lateinit var query: String
+        if (search != null) {
+            query = "SELECT * FROM functions WHERE LOWER(name) LIKE ?"
+        } else {
+            query = "SELECT * FROM functions"
+        }
+
 
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
+                if (search != null) {
+                    statement.setString(1, "%${search.lowercase()}%")
+                }
                 val resultSet = statement.executeQuery()
                 while (resultSet.next()) {
                     functions.add(resultSet.toFunction())
