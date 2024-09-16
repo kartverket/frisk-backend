@@ -58,6 +58,17 @@ object FunctionDependencyService {
         }
     }
 
+    fun deleteFunctionDependency(dependency: FunctionDependency) {
+        val query = "DELETE FROM function_dependencies WHERE function_id = ? AND dependency_function_id = ?"
+        Database.getConnection().use { connection ->
+            connection.prepareStatement(query).use { statement ->
+                statement.setInt(1, dependency.functionId)
+                statement.setInt(2, dependency.dependencyFunctionId)
+                statement.executeUpdate()
+            }
+        }
+    }
+
     private fun ResultSet.toFunctionDependency(): FunctionDependency {
         return FunctionDependency(
             functionId = getInt("function_id"),

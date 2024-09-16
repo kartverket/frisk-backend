@@ -11,13 +11,13 @@ fun Route.functionRoutes() {
     authenticate("auth-bearer") {
         route("/functions") {
             get {
-                val funcs = FunctionService.getAllFunctions()
+                val search = call.request.queryParameters["search"]
+                val funcs = FunctionService.getFunctions(search)
                 call.respond(funcs)
             }
             post {
                 val newFunction = call.receive<CreateFunctionDto>()
-                val f = FunctionService.createFunction(newFunction)
-                if (f == null) {
+                val f = FunctionService.createFunction(newFunction) ?: run {
                     call.respond(HttpStatusCode.InternalServerError)
                     return@post
                 }
@@ -25,21 +25,18 @@ fun Route.functionRoutes() {
             }
             route("/{id}") {
                 get {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
+                    val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
-                    val f = FunctionService.getFunction(id)
-                    if (f == null) {
+                    val f = FunctionService.getFunction(id) ?: run {
                         call.respond(HttpStatusCode.NotFound)
                         return@get
                     }
                     call.respond(f)
                 }
                 delete {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
+                    val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@delete
                     }
@@ -47,8 +44,7 @@ fun Route.functionRoutes() {
                     call.respond(HttpStatusCode.NoContent)
                 }
                 get("/children") {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
+                    val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
@@ -56,32 +52,46 @@ fun Route.functionRoutes() {
                     call.respond(children)
                 }
 
-                post("/dependencies") {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
-                        return@post
+                route("/dependencies") {
+                    post {
+                        val newDependency = call.receive<FunctionDependency>()
+                        val dep = FunctionDependencyService.createFunctionDependency(newDependency) ?: run {
+                            call.respond(HttpStatusCode.InternalServerError)
+                            return@post
+                        }
+                        call.respond(dep)
                     }
-                    val newDependency = call.receive<FunctionDependency>()
-                    val dep = FunctionDependencyService.createFunctionDependency(newDependency)
-                    if (dep == null) {
-                        call.respond(HttpStatusCode.InternalServerError)
-                        return@post
+
+                    delete("/{dependencyId}") {
+                        val id = call.parameters["id"]?.toInt() ?: run {
+                            call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                            return@delete
+                        }
+                        val depId = call.parameters["dependencyId"]?.toInt() ?: run {
+                            call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                            return@delete
+                        }
+
+                        val depToDelete = FunctionDependency(
+                            functionId = id,
+                            dependencyFunctionId = depId
+                        )
+                        FunctionDependencyService.deleteFunctionDependency(depToDelete)
+                        call.respond(HttpStatusCode.NoContent)
                     }
-                    call.respond(dep)
+
+                    get {
+                        val id = call.parameters["id"]?.toInt() ?: run {
+                            call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                            return@get
+                        }
+                        val deps = FunctionDependencyService.getFunctionDependencies(id)
+                        call.respond(deps)
+                    }
                 }
-                get("/dependencies") {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
-                        return@get
-                    }
-                    val deps = FunctionDependencyService.getFunctionDependencies(id)
-                    call.respond(deps)
-                }
+
                 get("/dependents") {
-                    val id = call.parameters["id"]?.toInt()
-                    if (id == null) {
+                    val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
