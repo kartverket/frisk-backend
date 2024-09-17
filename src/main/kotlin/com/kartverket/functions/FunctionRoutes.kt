@@ -35,6 +35,18 @@ fun Route.functionRoutes() {
                     }
                     call.respond(f)
                 }
+                put {
+                    val id = call.parameters["id"]?.toInt() ?: run {
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                        return@put
+                    }
+                    val updatedFunction = call.receive<UpdateFunctionDto>()
+                    val f = FunctionService.updateFunction(id, updatedFunction) ?: run {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@put
+                    }
+                    call.respond(f)
+                }
                 delete {
                     val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
