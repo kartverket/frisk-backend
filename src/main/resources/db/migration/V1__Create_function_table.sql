@@ -56,5 +56,23 @@ BEFORE INSERT OR UPDATE OF parent_id ON functions
 FOR EACH ROW
 EXECUTE FUNCTION prevent_cycle_and_set_path();
 
+
+CREATE OR REPLACE FUNCTION prevent_root_deletion()
+    RETURNS TRIGGER AS $$
+BEGIN
+    -- Assuming '1' is the ID of the root node as per your constraint
+    IF OLD.id = 1 THEN
+        RAISE EXCEPTION 'Cannot delete the root node of the tree';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to prevent deletion of the root node
+CREATE TRIGGER protect_root_node
+    BEFORE DELETE ON functions
+    FOR EACH ROW
+EXECUTE FUNCTION prevent_root_deletion();
+
 -- Ensure root node exists
 INSERT INTO functions (name, parent_id) VALUES ('Kartverket', NULL) ON CONFLICT (id) DO NOTHING;
