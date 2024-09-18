@@ -44,7 +44,9 @@ fun Route.functionRoutes() {
                     call.respond(f)
                 }
                 put {
+                    logger.info("Received put on /functions/{id}")
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@put
                     }

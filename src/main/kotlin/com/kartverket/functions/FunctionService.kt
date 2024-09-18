@@ -13,7 +13,7 @@ data class Function(val id: Int, val name: String, val description: String?, val
 data class CreateFunctionDto(val name: String, val description: String? = null, val parentId: Int)
 
 @Serializable
-data class UpdateFunctionDto(val name: String, val description: String? = null, val parentId: Int?)
+data class UpdateFunctionDto(val name: String, val description: String? = null, val parentId: Int?, val path: String)
 
 object FunctionService {
 
