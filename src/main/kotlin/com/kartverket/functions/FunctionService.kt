@@ -4,6 +4,7 @@ import com.kartverket.Database
 import java.sql.ResultSet
 import kotlinx.serialization.Serializable
 import java.sql.Types
+import io.ktor.util.logging.KtorSimpleLogger
 
 @Serializable
 data class Function(val id: Int, val name: String, val description: String?, val parentId: Int?, val path: String)
@@ -16,7 +17,10 @@ data class UpdateFunctionDto(val name: String, val description: String? = null, 
 
 object FunctionService {
 
+    val logger = KtorSimpleLogger("FunctionService")
+
     fun getFunctions(search: String? = null): List<Function> {
+        logger.info("Getting functions with search query: $search")
         val functions = mutableListOf<Function>()
         lateinit var query: String
         if (search != null) {
@@ -27,6 +31,7 @@ object FunctionService {
 
 
         Database.getConnection().use { connection ->
+            logger.debug("Preparing database query: $query")
             connection.prepareStatement(query).use { statement ->
                 if (search != null) {
                     statement.setString(1, "%${search.lowercase()}%")
@@ -41,7 +46,9 @@ object FunctionService {
     }
 
     fun getFunction(id: Int): Function? {
+        logger.info("Getting function with id: $id")
         val query = "SELECT * FROM functions where id = ?"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use {statement ->
                 statement.setInt(1, id)
@@ -55,8 +62,10 @@ object FunctionService {
     }
 
     fun getChildren(id: Int): List<Function> {
+        logger.info("Getting childeren with: $id")
         val functions = mutableListOf<Function>()
         val query = "SELECT * FROM functions WHERE parent_id = ?"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use {statement ->
                 statement.setInt(1, id)
@@ -70,7 +79,9 @@ object FunctionService {
     }
 
     fun createFunction(newFunction: CreateFunctionDto): Function? {
+        logger.info("Creating function with: ${newFunction.name}")
         val query = "INSERT INTO functions (name, description, parent_id) VALUES (?, ?, ?) RETURNING *"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, newFunction.name)
@@ -86,7 +97,9 @@ object FunctionService {
     }
 
     fun updateFunction(id: Int, updatedFunction: UpdateFunctionDto): Function? {
+        logger.info("Updating function with id: $id")
         val query = "UPDATE functions SET name = ?, description = ?, parent_id = ? WHERE id = ? RETURNING *"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, updatedFunction.name)
@@ -105,7 +118,9 @@ object FunctionService {
     }
 
     fun deleteFunction(id: Int): Boolean {
+        logger.info("Deleting function with id: $id")
         val query = "DELETE FROM functions WHERE id = ?"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)

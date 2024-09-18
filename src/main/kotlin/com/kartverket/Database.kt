@@ -5,14 +5,17 @@ import com.zaxxer.hikari.HikariDataSource
 import java.sql.Connection
 import org.flywaydb.core.Flyway
 import java.net.URI
+import io.ktor.util.logging.KtorSimpleLogger
 
 object Database {
     private lateinit var dataSource: HikariDataSource
+    private val logger = KtorSimpleLogger("Database")
 
     fun initDatabase() {
         val env = System.getenv("environment")
         val hikariConfig = HikariConfig()
         if (env == "production") {
+            logger.info("Using production database configuration")
             val databaseUrl = System.getenv("DATABASE_URL")
             val dbUri = URI(databaseUrl)
             val username = dbUri.userInfo.split(":")[0]
@@ -26,7 +29,7 @@ object Database {
                 driverClassName = "org.postgresql.Driver"
             }
         } else {
-            // Local development environment
+            logger.info("Using local development database configuration")
             val jdbcUrl = "jdbc:postgresql://localhost:5432/frisk-backend-db"
             val username = "postgres"
             val password = ""
@@ -77,9 +80,9 @@ object Database {
 
         val result = flyway.migrate()
         if (result.success) {
-            println("Database migrations applied successfully.")
+            logger.info("Database migrations applied successfully.")
         } else {
-            println("Failed to apply database migrations.")
+            logger.error("Failed to apply database migrations.")
             // Handle the failure appropriately
         }
     }
