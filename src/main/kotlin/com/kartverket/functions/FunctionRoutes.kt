@@ -6,18 +6,24 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.logging.KtorSimpleLogger
+
+val logger = KtorSimpleLogger("FunctionRoutes")
 
 fun Route.functionRoutes() {
     authenticate("auth-bearer") {
         route("/functions") {
             get {
+                logger.info("Received get on /functions")
                 val search = call.request.queryParameters["search"]
                 val funcs = FunctionService.getFunctions(search)
                 call.respond(funcs)
             }
             post {
+                logger.info("Received post on /functions")
                 val newFunction = call.receive<CreateFunctionDto>()
                 val f = FunctionService.createFunction(newFunction) ?: run {
+                    logger.error("Invalid input")
                     call.respond(HttpStatusCode.InternalServerError)
                     return@post
                 }
@@ -25,7 +31,9 @@ fun Route.functionRoutes() {
             }
             route("/{id}") {
                 get {
+                    logger.info("Received get on /functions/{id}")
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
@@ -36,7 +44,9 @@ fun Route.functionRoutes() {
                     call.respond(f)
                 }
                 delete {
+                    logger.info("Received delete on /functions/{id}")
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@delete
                     }
@@ -44,7 +54,9 @@ fun Route.functionRoutes() {
                     call.respond(HttpStatusCode.NoContent)
                 }
                 get("/children") {
+                    logger.info("Received get request on functions/{id}/childeren")
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
@@ -54,8 +66,10 @@ fun Route.functionRoutes() {
 
                 route("/dependencies") {
                     post {
+                        logger.info("Received post on /functions/{id}/dependencies")
                         val newDependency = call.receive<FunctionDependency>()
                         val dep = FunctionDependencyService.createFunctionDependency(newDependency) ?: run {
+                            logger.error("Invalid input")
                             call.respond(HttpStatusCode.InternalServerError)
                             return@post
                         }
@@ -63,11 +77,14 @@ fun Route.functionRoutes() {
                     }
 
                     delete("/{dependencyId}") {
+                        logger.info("Received delete on /functions/{id}/dependencies/{dependencyId}")
                         val id = call.parameters["id"]?.toInt() ?: run {
+                            logger.error("Invalid id parameter")
                             call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                             return@delete
                         }
                         val depId = call.parameters["dependencyId"]?.toInt() ?: run {
+                            logger.error("Invalid id parameter")
                             call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                             return@delete
                         }
@@ -81,7 +98,9 @@ fun Route.functionRoutes() {
                     }
 
                     get {
+                        logger.info("Received get on /functions/{id}/dependencies/")
                         val id = call.parameters["id"]?.toInt() ?: run {
+                            logger.error("Invalid id parameter")
                             call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                             return@get
                         }
@@ -91,7 +110,9 @@ fun Route.functionRoutes() {
                 }
 
                 get("/dependents") {
+                    logger.info("Received get on /functions/{id}/dependendents/")
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
