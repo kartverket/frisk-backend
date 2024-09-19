@@ -43,6 +43,20 @@ fun Route.functionRoutes() {
                     }
                     call.respond(f)
                 }
+                put {
+                    logger.info("Received put on /functions/{id}")
+                    val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.error("Invalid id parameter")
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                        return@put
+                    }
+                    val updatedFunction = call.receive<UpdateFunctionDto>()
+                    val f = FunctionService.updateFunction(id, updatedFunction) ?: run {
+                        call.respond(HttpStatusCode.NotFound)
+                        return@put
+                    }
+                    call.respond(f)
+                }
                 delete {
                     logger.info("Received delete on /functions/{id}")
                     val id = call.parameters["id"]?.toInt() ?: run {
