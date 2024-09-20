@@ -3,6 +3,7 @@ package com.kartverket.functions
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -11,10 +12,11 @@ import io.ktor.util.logging.KtorSimpleLogger
 val logger = KtorSimpleLogger("FunctionRoutes")
 
 fun Route.functionRoutes() {
-    authenticate("auth-bearer") {
+
         route("/functions") {
             get {
                 logger.info("Received get on /functions")
+                val principal = call.principal<JWTPrincipal>()
                 val search = call.request.queryParameters["search"]
                 val funcs = FunctionService.getFunctions(search)
                 call.respond(funcs)
@@ -116,10 +118,10 @@ fun Route.functionRoutes() {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
-                    val deps = FunctionDependencyService.getFunctionDependents(id)
+                val deps = FunctionDependencyService.getFunctionDependents(id)
                     call.respond(deps)
-                }
+            }
             }
         }
-    }
+    
 }

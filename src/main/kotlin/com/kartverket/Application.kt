@@ -1,13 +1,9 @@
 package com.kartverket
 
-import com.kartverket.plugins.configureAuth
-import com.kartverket.plugins.configureCors
-import com.kartverket.plugins.configureRouting
-import com.kartverket.plugins.configureSerialization
+import com.kartverket.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.util.logging.*
 
 fun main() {
     embeddedServer(
