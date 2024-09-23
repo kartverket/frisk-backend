@@ -16,7 +16,6 @@ fun Route.functionRoutes() {
         route("/functions") {
             get {
                 logger.info("Received get on /functions")
-                val principal = call.principal<JWTPrincipal>()
                 val search = call.request.queryParameters["search"]
                 val funcs = FunctionService.getFunctions(search)
                 call.respond(funcs)
