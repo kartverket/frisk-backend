@@ -1,15 +1,19 @@
 package com.kartverket.functions
 
 import com.kartverket.Database
+import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
-import io.ktor.util.logging.KtorSimpleLogger
 
 @Serializable
-data class FunctionDependency(val functionId: Int, val dependencyFunctionId: Int)
+data class FunctionDependency(
+    val functionId: Int,
+    val dependencyFunctionId: Int,
+)
 
 object FunctionDependencyService {
     val logger = KtorSimpleLogger("FunctionDependencyService")
+
     fun getFunctionDependencies(id: Int): List<Int> {
         logger.info("Getting function dependencies with id: $id")
         val deps = mutableListOf<Int>()
@@ -75,10 +79,9 @@ object FunctionDependencyService {
         }
     }
 
-    private fun ResultSet.toFunctionDependency(): FunctionDependency {
-        return FunctionDependency(
+    private fun ResultSet.toFunctionDependency(): FunctionDependency =
+        FunctionDependency(
             functionId = getInt("function_id"),
-            dependencyFunctionId = getInt("dependency_function_id")
+            dependencyFunctionId = getInt("dependency_function_id"),
         )
-    }
 }

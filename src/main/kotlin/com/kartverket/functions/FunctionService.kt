@@ -1,22 +1,36 @@
 package com.kartverket.functions
 
 import com.kartverket.Database
-import java.sql.ResultSet
-import kotlinx.serialization.Serializable
-import java.sql.Types
 import io.ktor.util.logging.KtorSimpleLogger
+import kotlinx.serialization.Serializable
+import java.sql.ResultSet
+import java.sql.Types
 
 @Serializable
-data class Function(val id: Int, val name: String, val description: String?, val parentId: Int?, val path: String)
+data class Function(
+    val id: Int,
+    val name: String,
+    val description: String?,
+    val parentId: Int?,
+    val path: String,
+)
 
 @Serializable
-data class CreateFunctionDto(val name: String, val description: String? = null, val parentId: Int)
+data class CreateFunctionDto(
+    val name: String,
+    val description: String? = null,
+    val parentId: Int,
+)
 
 @Serializable
-data class UpdateFunctionDto(val name: String, val description: String? = null, val parentId: Int?, val path: String)
+data class UpdateFunctionDto(
+    val name: String,
+    val description: String? = null,
+    val parentId: Int?,
+    val path: String,
+)
 
 object FunctionService {
-
     val logger = KtorSimpleLogger("FunctionService")
 
     fun getFunctions(search: String? = null): List<Function> {
@@ -28,7 +42,6 @@ object FunctionService {
         } else {
             query = "SELECT * FROM functions"
         }
-
 
         Database.getConnection().use { connection ->
             logger.debug("Preparing database query: $query")
@@ -50,7 +63,7 @@ object FunctionService {
         val query = "SELECT * FROM functions where id = ?"
         logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
-            connection.prepareStatement(query).use {statement ->
+            connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 val resultSet = statement.executeQuery()
                 if (!resultSet.next()) {
@@ -67,7 +80,7 @@ object FunctionService {
         val query = "SELECT * FROM functions WHERE parent_id = ?"
         logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
-            connection.prepareStatement(query).use {statement ->
+            connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 val resultSet = statement.executeQuery()
                 while (resultSet.next()) {
@@ -96,7 +109,10 @@ object FunctionService {
         }
     }
 
-    fun updateFunction(id: Int, updatedFunction: UpdateFunctionDto): Function? {
+    fun updateFunction(
+        id: Int,
+        updatedFunction: UpdateFunctionDto,
+    ): Function? {
         logger.info("Updating function with id: $id")
         val query = "UPDATE functions SET name = ?, description = ?, parent_id = ? WHERE id = ? RETURNING *"
         logger.debug("Preparing database query: $query")
@@ -139,7 +155,7 @@ object FunctionService {
             name = getString("name"),
             description = getString("description"),
             parentId,
-            path = getString("path")
+            path = getString("path"),
         )
     }
 }
