@@ -31,7 +31,6 @@ fun Application.configureAuth() {
                 withIssuer(issuer)
                 withAudience(clientId)
                 acceptLeeway(3)
-
             }
 
             validate { jwtCredential ->
