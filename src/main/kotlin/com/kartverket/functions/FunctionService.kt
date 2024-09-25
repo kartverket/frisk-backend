@@ -158,6 +158,4 @@ object FunctionService {
             path = getString("path"),
         )
     }
-
 }
-
