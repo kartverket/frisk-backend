@@ -6,12 +6,13 @@ CREATE TABLE function_metadata_keys (
 );
 
 CREATE TABLE function_metadata (
+    id SERIAL PRIMARY KEY,
     function_id INTEGER NOT NULL,
     key_id INTEGER NOT NULL,
     value TEXT NOT NULL,
-    PRIMARY KEY (function_id, key_id),
-    FOREIGN KEY (function_id) REFERENCES functions(id),
-    FOREIGN KEY (key_id) REFERENCES function_metadata_keys(id)
+    FOREIGN KEY (function_id) REFERENCES functions(id) ON DELETE CASCADE,
+    FOREIGN KEY (key_id) REFERENCES function_metadata_keys(id) ON DELETE CASCADE,
+    CONSTRAINT unique_function_key_value UNIQUE(function_id, key_id, value)
 );
 
 CREATE OR REPLACE FUNCTION lowercase_key()
