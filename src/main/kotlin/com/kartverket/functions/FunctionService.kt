@@ -145,18 +145,19 @@ object FunctionService {
         }
     }
 
+    private fun ResultSet.toFunction(): Function {
+        var parentId: Int? = getInt("parent_id")
+        if (wasNull()) {
+            parentId = null
+        }
+        return Function(
+            id = getInt("id"),
+            name = getString("name"),
+            description = getString("description"),
+            parentId,
+            path = getString("path"),
+        )
+    }
+
 }
 
-fun ResultSet.toFunction(): Function {
-    var parentId: Int? = getInt("parent_id")
-    if (wasNull()) {
-        parentId = null
-    }
-    return Function(
-        id = getInt("id"),
-        name = getString("name"),
-        description = getString("description"),
-        parentId,
-        path = getString("path"),
-    )
-}
