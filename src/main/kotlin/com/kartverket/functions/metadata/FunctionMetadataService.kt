@@ -122,6 +122,16 @@ object FunctionMetadataService {
         }
     }
 
+    fun deleteMetadata(id: Int) {
+        val query = "DELETE FROM function_metadata WHERE id = ?"
+        Database.getConnection().use { connection ->
+            connection.prepareStatement(query).use { statement ->
+                statement.setInt(1, id)
+                statement.executeUpdate()
+            }
+        }
+    }
+
 
     private fun ResultSet.toFunctionMetadata(): FunctionMetadata {
         return FunctionMetadata(

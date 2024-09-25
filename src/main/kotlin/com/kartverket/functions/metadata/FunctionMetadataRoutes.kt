@@ -63,6 +63,15 @@ fun Route.functionMetadataRoutes() {
                 FunctionMetadataService.updateMetadataValue(id, updatedMetadata)
                 call.respond(HttpStatusCode.NoContent)
             }
+            delete {
+                val id = call.parameters["id"]?.toInt()
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
+                    return@delete
+                }
+                FunctionMetadataService.deleteMetadata(id)
+                call.respond(HttpStatusCode.NoContent)
+            }
             route("/function") {
                 get {
                     call.respond(HttpStatusCode.NotImplemented)
