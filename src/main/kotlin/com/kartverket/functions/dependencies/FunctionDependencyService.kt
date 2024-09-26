@@ -1,4 +1,4 @@
-package com.kartverket.functions
+package com.kartverket.functions.dependencies
 
 import com.kartverket.Database
 import io.ktor.util.logging.KtorSimpleLogger
