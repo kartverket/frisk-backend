@@ -26,35 +26,43 @@ data class UpdateFunctionMetadataDTO(
 object FunctionMetadataService {
 
     fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
-        if (functionId == null && key == null) {
-            throw IllegalArgumentException("functionId and key can not be null")
-        }
+        require(!(functionId == null && key == null)) { "functionId and key cannot both be null" }
+
         val metadata = mutableListOf<FunctionMetadata>()
 
-        var query = "SELECT fm.id, fm.function_id, fmk.key, fm.value FROM function_metadata fm INNER JOIN function_metadata_keys fmk ON fm.key_id = fmk.id"
-        query += if (functionId != null && key != null) {
-            " WHERE fm.function_id = ? AND fmk.key = ?"
-        } else if (functionId != null) {
-            " WHERE fm.function_id = ?"
-        } else {
-            " WHERE fmk.key = ?"
+        val baseQuery = """
+            SELECT fm.id, fm.function_id, fmk.key, fm.value 
+            FROM function_metadata fm 
+            INNER JOIN function_metadata_keys fmk ON fm.key_id = fmk.id
+        """.trimIndent()
+
+        val conditions = mutableListOf<String>()
+        val parameters = mutableListOf<Any?>()
+
+        if (functionId != null) {
+            conditions.add("fm.function_id = ?")
+            parameters.add(functionId)
+        }
+        if (key != null) {
+            conditions.add("fmk.key = ?")
+            parameters.add(key.lowercase())
+        }
+        if (value != null) {
+            conditions.add("fm.value = ?")
+            parameters.add(value)
         }
 
-        if (value != null) {
-            query += " AND fm.value = ?"
-        }
+        val whereClause = if (conditions.isNotEmpty()) " WHERE ${conditions.joinToString(" AND ")}" else ""
+        val query = baseQuery + whereClause
 
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
-                var index = 1
-                if (functionId != null) {
-                    statement.setInt(index++, functionId)
-                }
-                if (key != null) {
-                    statement.setString(index++, key.lowercase())
-                }
-                if (value != null) {
-                    statement.setString(index, value)
+                parameters.forEachIndexed { index, param ->
+                    when (param) {
+                        is Int -> statement.setInt(index + 1, param)
+                        is String -> statement.setString(index + 1, param)
+                        else -> throw IllegalArgumentException("Unsupported parameter type")
+                    }
                 }
                 val resultSet = statement.executeQuery()
                 while (resultSet.next()) {
