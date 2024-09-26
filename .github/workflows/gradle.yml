@@ -26,9 +26,9 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: frisk-backend-db-test
+          POSTGRES_DB: frisk-backend-db
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD:
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
