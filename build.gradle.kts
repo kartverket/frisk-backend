@@ -44,6 +44,8 @@ dependencies {
     implementation("io.ktor:ktor-server-swagger")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
+    testImplementation("io.ktor:ktor-server-test-host")
 }
 
 flyway {
