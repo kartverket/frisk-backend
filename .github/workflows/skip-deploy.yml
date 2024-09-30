@@ -77,7 +77,6 @@ jobs:
         uses: gradle/actions/dependency-submission@v3
 
       - name: Execute Gradle build
-        working-directory: backend
         run: ./gradlew shadowJar
 
       - name: Set tag
