@@ -484,7 +484,7 @@ paths:
               schema:
                 type: "array"
                 items:
-                  $ref: "#/components/schemas/GroupDTO"
+                  $ref: "#/components/schemas/TeamDTO"
   /microsoft/teams/{id}:
     get:
       description: ""
@@ -506,7 +506,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/GroupDTO"
+                $ref: "#/components/schemas/TeamDTO"
 components:
   schemas:
     Function:
@@ -596,7 +596,7 @@ components:
           type: "string"
       required:
       - "value"
-    GroupDTO:
+    TeamDTO:
       type: "object"
       properties:
         id:
