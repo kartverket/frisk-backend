@@ -3,10 +3,7 @@ package com.kartverket.microsoft
 import com.azure.identity.ClientSecretCredentialBuilder
 import com.microsoft.graph.models.Group
 import com.microsoft.graph.serviceclient.GraphServiceClient
-import io.ktor.util.logging.*
 import kotlinx.serialization.Serializable
-
-val logger = KtorSimpleLogger("FunctionRoutes")
 
 @Serializable
 data class GroupDTO(

@@ -1,6 +1,5 @@
 package com.kartverket.plugins
 import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
