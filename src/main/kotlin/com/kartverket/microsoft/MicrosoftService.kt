@@ -6,7 +6,7 @@ import com.microsoft.graph.serviceclient.GraphServiceClient
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GroupDTO(
+data class TeamDTO(
     val id: String,
     val displayName: String,
 )
@@ -20,21 +20,21 @@ object MicrosoftService {
     private val credential = ClientSecretCredentialBuilder().clientId(clientId).tenantId(tenantId).clientSecret(clientSecret).build()
     private val graphClient = GraphServiceClient(credential, scopes)
 
-    fun getMemberGroups(userId: String): List<GroupDTO> {
+    fun getMemberGroups(userId: String): List<TeamDTO> {
         val groups = graphClient.users().byUserId(userId).memberOf().graphGroup().get().value
 
         return groups.map {
-            it.toDTO()
+            it.toTeamDTO()
         }
     }
 
-    fun getGroup(groupId: String): GroupDTO {
-        return graphClient.groups().byGroupId(groupId).get().toDTO()
+    fun getGroup(groupId: String): TeamDTO {
+        return graphClient.groups().byGroupId(groupId).get().toTeamDTO()
     }
 }
 
-fun Group.toDTO(): GroupDTO {
-    return GroupDTO(
+fun Group.toTeamDTO(): TeamDTO {
+    return TeamDTO(
         id = this.id,
         displayName = this.displayName,
     )
