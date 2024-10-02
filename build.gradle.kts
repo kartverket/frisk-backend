@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 val kotlin_version: String by project
 val logback_version: String by project
@@ -10,6 +11,7 @@ plugins {
     id("io.ktor.plugin") version "2.3.12"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.20"
     id("org.flywaydb.flyway") version "9.22.0" // or latest
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "com.kartverket"
@@ -55,4 +57,10 @@ flyway {
     user = "my_user"
     password = "my_password"
     locations = arrayOf("filesystem:src/main/resources/db/migration")
+}
+
+tasks {
+    withType<ShadowJar> {
+        mergeServiceFiles()
+    }
 }
