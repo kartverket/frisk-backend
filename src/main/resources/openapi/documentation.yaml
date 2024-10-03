@@ -467,6 +467,46 @@ paths:
                 type: "array"
                 items:
                   type: "string"
+  /microsoft/me/teams:
+    get:
+      description: ""
+      responses:
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/TeamDTO"
+  /microsoft/teams/{id}:
+    get:
+      description: ""
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TeamDTO"
 components:
   schemas:
     Function:
@@ -556,3 +596,13 @@ components:
           type: "string"
       required:
       - "value"
+    TeamDTO:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+        displayName:
+          type: "string"
+      required:
+      - "id"
+      - "displayName"
