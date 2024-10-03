@@ -1,6 +1,8 @@
 package com.kartverket.functions.metadata
 
 import com.kartverket.Database
+import com.kartverket.microsoft.MicrosoftService
+import com.microsoft.graph.models.odataerrors.ODataError
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
 
@@ -22,6 +24,10 @@ data class CreateFunctionMetadataDTO(
 data class UpdateFunctionMetadataDTO(
     val value: String,
 )
+
+enum class SpecialMetadataKey(val key: String) {
+    TEAM("team")
+}
 
 object FunctionMetadataService {
 
@@ -98,6 +104,10 @@ object FunctionMetadataService {
     }
 
     fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
+        require(isValueValidForKey(newMetadata.key, newMetadata.value)) {
+            "The value ${newMetadata.value} is not a valid for key ${newMetadata.key}"
+        }
+
         val query = "INSERT INTO function_metadata_keys (key) " +
                 "VALUES (?) " +
                 "ON CONFLICT (key) DO NOTHING; " +
@@ -137,6 +147,20 @@ object FunctionMetadataService {
                 statement.setInt(1, id)
                 statement.executeUpdate()
             }
+        }
+    }
+
+    private fun isValueValidForKey(key: String, value: String): Boolean {
+        return when (key) {
+            SpecialMetadataKey.TEAM.key -> {
+                try {
+                    val group = MicrosoftService.getGroup(value)
+                    group.id == value
+                } catch (error: ODataError) {
+                    false
+                }
+            }
+            else -> true
         }
     }
 

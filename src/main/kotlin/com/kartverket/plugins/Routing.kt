@@ -1,10 +1,9 @@
 package com.kartverket.plugins
 
-import com.kartverket.Database
-import com.kartverket.functions.FunctionService
 import com.kartverket.functions.dependencies.functionDependenciesRoutes
 import com.kartverket.functions.functionRoutes
 import com.kartverket.functions.metadata.functionMetadataRoutes
+import com.kartverket.microsoft.microsoftRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -15,12 +14,11 @@ import io.ktor.server.response.*
 fun Application.configureRouting() {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
-        authenticate("auth-jwt") {
+        authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
             functionRoutes()
             functionDependenciesRoutes()
-
-            // some of these routes shall be protected by another type of auth
             functionMetadataRoutes()
+            microsoftRoutes()
         }
         route("/functions") {
             get("/health") {

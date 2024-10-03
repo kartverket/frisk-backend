@@ -7,6 +7,8 @@ import io.ktor.util.logging.*
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
+const val AUTH_JWT = "auth-jwt"
+
 val logger = KtorSimpleLogger("FunctionRoutes")
 
 fun Application.configureAuth() {
@@ -25,7 +27,7 @@ fun Application.configureAuth() {
             .build()
 
     install(Authentication) {
-        jwt("auth-jwt") {
+        jwt(AUTH_JWT) {
             realm = "Frisk Backend"
             verifier(jwkProvider, issuer) {
                 withIssuer(issuer)
@@ -39,4 +41,8 @@ fun Application.configureAuth() {
             }
         }
     }
+}
+
+fun JWTPayloadHolder.getUserId(): String {
+    return this.payload.getClaim("oid").asString()
 }
