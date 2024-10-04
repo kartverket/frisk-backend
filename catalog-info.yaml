@@ -1,0 +1,56 @@
+# nonk8s
+apiVersion: "backstage.io/v1alpha1"
+kind: "Component"
+metadata:
+  name: "frisk-backend"
+  tags:
+  - "internal"
+spec:
+  type: "service"
+  lifecycle: "production"
+  owner: "skvis"
+  system: "sikkerhetsmetrikker"
+  providesApis:
+  - "frisk-backend-api"
+---
+apiVersion: "backstage.io/v1alpha1"
+kind: "Group"
+metadata:
+  name: "security_champion_frisk-backend"
+  title: "Security Champion frisk-backend"
+spec:
+  type: "security_champion"
+  parent: "eiendom_security_champions"
+  members:
+  - "larsore"
+  children:
+  - "resource:frisk-backend"
+---
+apiVersion: "backstage.io/v1alpha1"
+kind: "Resource"
+metadata:
+  name: "frisk-backend"
+  links:
+  - url: "https://github.com/kartverket/frisk-backend"
+    title: "frisk-backend på GitHub"
+spec:
+  type: "repo"
+  owner: "security_champion_frisk-backend"
+  dependencyOf:
+  - "component:frisk-backend"
+---
+apiVersion: "backstage.io/v1alpha1"
+kind: "API"
+metadata:
+  name: "frisk-backend-api"
+  tags:
+  - "internal"
+spec:
+  type: "openapi"
+  lifecycle: "production"
+  owner: "skvis"
+  definition: |
+    openapi: "3.0.0"
+    info:
+        title: frisk-backend API
+    paths:
