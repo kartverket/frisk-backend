@@ -2,10 +2,10 @@ package com.kartverket
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import java.sql.Connection
+import io.ktor.util.logging.KtorSimpleLogger
 import org.flywaydb.core.Flyway
 import java.net.URI
-import io.ktor.util.logging.KtorSimpleLogger
+import java.sql.Connection
 
 object Database {
     private lateinit var dataSource: HikariDataSource
@@ -15,17 +15,26 @@ object Database {
         val env = System.getenv("environment")
         val hikariConfig = HikariConfig()
         if (env == "production") {
-            logger.info("Using production database configuration")
-            val databaseUrl = System.getenv("DATABASE_URL")
-            val dbUri = URI(databaseUrl)
-            val username = dbUri.userInfo.split(":")[0]
-            val password = dbUri.userInfo.split(":")[1]
-            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
+            HikariConfig().apply {
+                val platform = System.getenv("platform")
+                when (platform) {
+                    "flyio" -> {
+                        logger.info("Using Fly.io database configuration")
+                        System.getenv("DATABASE_URL")?.let { databaseUrl ->
+                            val dbUri = URI(databaseUrl)
+                            val (user, pass) = dbUri.userInfo.split(":", limit = 2)
+                            jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
+                            username = user
+                            password = pass
+                        }
+                    }
+                    else -> {
+                        jdbcUrl = "jdbc:postgresql://${System.getenv("DATABASE_HOST")}:5432/frisk-backend-db?sslmode=verify-ca"
+                        username = System.getenv("DATABASE_USER") ?: ""
+                        password = System.getenv("DATABASE_PASSWORD") ?: ""
+                    }
+                }
 
-            hikariConfig.apply {
-                this.jdbcUrl = jdbcUrl
-                this.username = username
-                this.password = password
                 driverClassName = "org.postgresql.Driver"
             }
         } else {
@@ -44,36 +53,39 @@ object Database {
         dataSource = HikariDataSource(hikariConfig)
     }
 
-    fun getConnection(): Connection {
-        return dataSource.connection
-    }
+    fun getConnection(): Connection = dataSource.connection
 
-    // Optionally, you might want to close the pool when your application shuts down
     fun closePool() {
         dataSource.close()
     }
 
     fun migrate() {
         val env = System.getenv("environment")
-        val databaseUrl = System.getenv("DATABASE_URL")
         val flywayConfig = Flyway.configure()
         if (env == "production") {
-            // Production environment (Fly.io)
-            val dbUri = URI(databaseUrl)
-            val username = dbUri.userInfo.split(":")[0]
-            val password = dbUri.userInfo.split(":")[1]
-            val jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
-
-            flywayConfig.dataSource(jdbcUrl, username, password)
+            if (System.getenv("platform") == "flyio") {
+                logger.info("Using Fly.io database configuration")
+                System.getenv("DATABASE_URL")?.let { databaseUrl ->
+                    val dbUri = URI(databaseUrl)
+                    val (user, pass) = dbUri.userInfo.split(":", limit = 2)
+                    flywayConfig.dataSource("jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable", user, pass)
+                }
+            } else {
+                val host = System.getenv("DATABASE_HOST")
+                val username = System.getenv("DATABASE_USER")
+                val password = System.getenv("DATABASE_PASSWORD")
+                // Create database URL from these variables
+                val jdbcUrl = "jdbc:postgresql://$host:5432/frisk-backend-db/?sslmode=verify-ca"
+                flywayConfig.dataSource(jdbcUrl, username, password)
+            }
         } else {
             // Local development environment
             val jdbcUrl = "jdbc:postgresql://localhost:5432/frisk-backend-db"
             val username = "postgres"
-            val password = "" 
+            val password = ""
 
             flywayConfig.dataSource(jdbcUrl, username, password)
         }
-        
 
         flywayConfig.locations("classpath:db/migration")
         val flyway = flywayConfig.load()
