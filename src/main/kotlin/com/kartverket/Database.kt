@@ -15,7 +15,7 @@ object Database {
         val env = System.getenv("environment")
         val hikariConfig = HikariConfig()
         if (env == "production") {
-            HikariConfig().apply {
+            hikariConfig.apply {
                 val platform = System.getenv("platform")
                 when (platform) {
                     "flyio" -> {
