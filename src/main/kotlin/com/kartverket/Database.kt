@@ -54,6 +54,9 @@ object Database {
                 driverClassName = "org.postgresql.Driver"
             }
         }
+        logger.info("Database username: ${hikariConfig.username}")
+        logger.info("Database password: ${hikariConfig.password}")
+        logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
         dataSource = HikariDataSource(hikariConfig)
     }
 
