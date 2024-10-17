@@ -30,8 +30,7 @@ object Database {
                         }
                     }
                     else -> {
-                        writeCertificateIfNotExists()
-                        val caCertPath = "/app/certs/ca-cert.pem"
+                        val caCertPath = "/app/db-ssl-ca/server.crt"
                         jdbcUrl = "jdbc:postgresql://${System.getenv(
                             "DATABASE_HOST",
                         )}:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
@@ -101,16 +100,6 @@ object Database {
         } else {
             logger.error("Failed to apply database migrations.")
             // Handle the failure appropriately
-        }
-    }
-
-    fun writeCertificateIfNotExists() {
-        val certPath = "/app/certs/ca-cert.pem"
-        val certFile = File(certPath)
-        if (!certFile.exists()) {
-            System.getenv("DATABASE_CA_CERTIFICATE")?.let { caCert ->
-                certFile.writeText(caCert)
-            } ?: throw RuntimeException("DATABASE_CA environment variable is not set")
         }
     }
 }
