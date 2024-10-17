@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.logging.KtorSimpleLogger
 import org.flywaydb.core.Flyway
+import java.io.File
 import java.net.URI
 import java.sql.Connection
 
@@ -29,7 +30,11 @@ object Database {
                         }
                     }
                     else -> {
-                        jdbcUrl = "jdbc:postgresql://${System.getenv("DATABASE_HOST")}:5432/frisk-backend-db?sslmode=verify-ca"
+                        writeCertificateIfNotExists()
+                        val caCertPath = "/app/certs/ca-cert.pem"
+                        jdbcUrl = "jdbc:postgresql://${System.getenv(
+                            "DATABASE_HOST",
+                        )}:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
                         username = System.getenv("DATABASE_USER") ?: ""
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                     }
@@ -96,6 +101,15 @@ object Database {
         } else {
             logger.error("Failed to apply database migrations.")
             // Handle the failure appropriately
+        }
+    }
+    fun writeCertificateIfNotExists() {
+        val certPath = "/app/certs/ca-cert.pem"
+        val certFile = File(certPath)
+        if (!certFile.exists()) {
+            System.getenv("DATABASE_CA")?.let { caCert ->
+                certFile.writeText(caCert)
+            } ?: throw RuntimeException("DATABASE_CA environment variable is not set")
         }
     }
 }
