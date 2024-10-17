@@ -107,7 +107,7 @@ object Database {
         val certPath = "/app/certs/ca-cert.pem"
         val certFile = File(certPath)
         if (!certFile.exists()) {
-            System.getenv("DATABASE_CA")?.let { caCert ->
+            System.getenv("DATABASE_CA_CERTIFICATE")?.let { caCert ->
                 certFile.writeText(caCert)
             } ?: throw RuntimeException("DATABASE_CA environment variable is not set")
         }
