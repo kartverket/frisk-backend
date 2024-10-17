@@ -20,8 +20,8 @@ fun Application.configureRouting() {
             functionMetadataRoutes()
             microsoftRoutes()
         }
-        route("/functions") {
-            get("/health") {
+        route("/health") {
+            get {
                 call.respondText("Up and running!", ContentType.Text.Plain)
             }
         }
