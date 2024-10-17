@@ -31,6 +31,9 @@ object Database {
                     }
                     else -> {
                         val caCertPath = "/app/db-ssl-ca/server.crt"
+                        // Print out the caCert contents
+                        logger.info("caCertPath: $caCertPath")
+                        logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${System.getenv(
                             "DATABASE_HOST",
                         )}:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
