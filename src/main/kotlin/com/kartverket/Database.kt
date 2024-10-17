@@ -103,6 +103,7 @@ object Database {
             // Handle the failure appropriately
         }
     }
+
     fun writeCertificateIfNotExists() {
         val certPath = "/app/certs/ca-cert.pem"
         val certFile = File(certPath)

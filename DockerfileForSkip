@@ -4,9 +4,9 @@ RUN apk update && apk upgrade
 # Create a non-root
 RUN mkdir /app
 RUN mkdir /app/certs
-EXPOSE 8080
 RUN adduser -D user && chown -R user /app
-WORKDIR .
+EXPOSE 8080
+WORKDIR ./app
 COPY build/libs/*.jar /app/frisk-backend.jar
 USER user
 ENTRYPOINT ["java","-jar","/app/frisk-backend.jar"]
