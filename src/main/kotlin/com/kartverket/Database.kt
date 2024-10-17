@@ -102,5 +102,4 @@ object Database {
             // Handle the failure appropriately
         }
     }
-
 }
