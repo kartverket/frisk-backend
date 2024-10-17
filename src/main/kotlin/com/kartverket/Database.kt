@@ -37,7 +37,7 @@ object Database {
                         jdbcUrl = "jdbc:postgresql://${System.getenv(
                             "DATABASE_HOST",
                         )}:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
-                        username = System.getenv("DATABASE_USER") ?: ""
+                        username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                     }
                 }
