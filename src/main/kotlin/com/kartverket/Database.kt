@@ -27,6 +27,7 @@ object Database {
                             jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable"
                             username = user
                             password = pass
+                            driverClassName = "org.postgresql.Driver"
                         }
                     }
                     else -> {
@@ -36,13 +37,12 @@ object Database {
                         logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${System.getenv(
                             "DATABASE_HOST",
-                        )}:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
+                        )}:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
+                        driverClassName = "org.postgresql.Driver"
                     }
                 }
-
-                driverClassName = "org.postgresql.Driver"
             }
         } else {
             logger.info("Using local development database configuration")
@@ -81,11 +81,13 @@ object Database {
                     flywayConfig.dataSource("jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable", user, pass)
                 }
             } else {
-                val host = System.getenv("DATABASE_HOST")
+                val caCertPath = "/app/db-ssl-ca/server.crt"
                 val username = System.getenv("DATABASE_USER")
                 val password = System.getenv("DATABASE_PASSWORD")
                 // Create database URL from these variables
-                val jdbcUrl = "jdbc:postgresql://$host:5432/frisk-backend-db/?sslmode=verify-ca"
+                val jdbcUrl = "jdbc:postgresql://${System.getenv(
+                    "DATABASE_HOST",
+                )}:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
                 flywayConfig.dataSource(jdbcUrl, username, password)
             }
         } else {
