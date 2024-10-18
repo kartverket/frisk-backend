@@ -30,14 +30,17 @@ object Database {
                             driverClassName = "org.postgresql.Driver"
                         }
                     }
+
                     else -> {
                         val caCertPath = "/app/db-ssl-ca/server.crt"
                         // Print out the caCert contents
                         logger.info("caCertPath: $caCertPath")
                         logger.info(File(caCertPath).readText())
-                        jdbcUrl = "jdbc:postgresql://${System.getenv(
-                            "DATABASE_HOST",
-                        )}:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
+                        jdbcUrl = "jdbc:postgresql://${
+                            System.getenv(
+                                "DATABASE_HOST",
+                            )
+                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
@@ -78,16 +81,22 @@ object Database {
                 System.getenv("DATABASE_URL")?.let { databaseUrl ->
                     val dbUri = URI(databaseUrl)
                     val (user, pass) = dbUri.userInfo.split(":", limit = 2)
-                    flywayConfig.dataSource("jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable", user, pass)
+                    flywayConfig.dataSource(
+                        "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable",
+                        user,
+                        pass,
+                    )
                 }
             } else {
                 val caCertPath = "/app/db-ssl-ca/server.crt"
                 val username = System.getenv("DATABASE_USER")
                 val password = System.getenv("DATABASE_PASSWORD")
                 // Create database URL from these variables
-                val jdbcUrl = "jdbc:postgresql://${System.getenv(
-                    "DATABASE_HOST",
-                )}:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
+                val jdbcUrl = "jdbc:postgresql://${
+                    System.getenv(
+                        "DATABASE_HOST",
+                    )
+                }:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
                 flywayConfig.dataSource(jdbcUrl, username, password)
             }
         } else {
