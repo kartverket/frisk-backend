@@ -32,12 +32,14 @@ object Database {
                     }
 
                     else -> {
-                        val caCertPath = "/app/db-ssl-ca/server.crt"
+                        val caCertPath = "/app/db-ssl-ca/adminclient.crt"
+                        logger.info("Reading adminclient.crt from disk")
+                        logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
+                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
@@ -59,7 +61,12 @@ object Database {
         }
         logger.info("Database password: ${hikariConfig.password}")
         logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
-        dataSource = HikariDataSource(hikariConfig)
+        try {
+            dataSource = HikariDataSource(hikariConfig)
+        } catch (e: Exception) {
+            logger.error("Failed to create the HikariDataSource.", e)
+            throw e
+        }
     }
 
     fun getConnection(): Connection = dataSource.connection
@@ -84,7 +91,7 @@ object Database {
                     )
                 }
             } else {
-                val caCertPath = "/app/db-ssl-ca/server.crt"
+                val caCertPath = "/app/db-ssl-ca/adminclient.crt"
                 val username = System.getenv("DATABASE_USER")
                 val password = System.getenv("DATABASE_PASSWORD")
                 // Create database URL from these variables
