@@ -32,8 +32,7 @@ object Database {
                     }
 
                     else -> {
-                        val caCertPath = "/app/db-ssl-ca/adminclient.crt"
-                        logger.info("Reading adminclient.crt from disk")
+                        val caCertPath = "/app/db-ssl-ca/server.crt"
                         logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
@@ -91,7 +90,7 @@ object Database {
                     )
                 }
             } else {
-                val caCertPath = "/app/db-ssl-ca/adminclient.crt"
+                val caCertPath = "/app/db-ssl-ca/server.crt"
                 val username = System.getenv("DATABASE_USER")
                 val password = System.getenv("DATABASE_PASSWORD")
                 // Create database URL from these variables
