@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.logging.KtorSimpleLogger
 import org.flywaydb.core.Flyway
+import java.io.File
 import java.net.URI
 import java.sql.Connection
 
@@ -32,6 +33,8 @@ object Database {
 
                     else -> {
                         val caCertPath = "/app/db-ssl-ca/adminclient.crt"
+                        logger.info("Reading adminclient.crt from disk")
+                        logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
