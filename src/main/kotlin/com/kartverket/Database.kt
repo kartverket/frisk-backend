@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.logging.KtorSimpleLogger
 import org.flywaydb.core.Flyway
-import java.io.File
 import java.net.URI
 import java.sql.Connection
 
@@ -32,12 +31,12 @@ object Database {
                     }
 
                     else -> {
-                        val caCertPath = "/app/db-ssl-ca/server.crt"
+                        val caCertPath = "/app/db-ssl-ca/adminclient.crt"
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
+                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
@@ -59,7 +58,12 @@ object Database {
         }
         logger.info("Database password: ${hikariConfig.password}")
         logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
-        dataSource = HikariDataSource(hikariConfig)
+        try {
+            dataSource = HikariDataSource(hikariConfig)
+        } catch (e: Exception) {
+            logger.error("Failed to create the HikariDataSource.", e)
+            throw e
+        }
     }
 
     fun getConnection(): Connection = dataSource.connection
