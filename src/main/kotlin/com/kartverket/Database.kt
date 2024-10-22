@@ -33,12 +33,19 @@ object Database {
 
                     else -> {
                         logger.info("Using gcp database configuration")
-                        val caCertPath = "/app/db-ssl-ca/server.crt"
+                        val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
+                        val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
+                        val clientKeyPath = "/app/db-ssl-ca/client-key.pem"
+                        // Assert that the certificates exist
+                        File(serverCertPath).exists()
+                        File(clientCertPath).exists()
+                        File(clientKeyPath).exists()
+
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db"
+                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$serverCertPath&sslcert=$clientCertPath&sslkey=$clientKeyPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
@@ -90,15 +97,17 @@ object Database {
                     )
                 }
             } else {
-                val caCertPath = "/app/db-ssl-ca/server.crt"
+                logger.info("Using gcp database configuration for migration")
+                val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
+                val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
+                val clientKeyPath = "/app/db-ssl-ca/client-key.pem"
                 val username = "admin"
                 val password = System.getenv("DATABASE_PASSWORD")
-                // Create database URL from these variables
                 val jdbcUrl = "jdbc:postgresql://${
                     System.getenv(
                         "DATABASE_HOST",
                     )
-                }:5432/frisk-backend-db"
+                }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$serverCertPath&sslcert=$clientCertPath&sslkey=$clientKeyPath"
                 flywayConfig.dataSource(jdbcUrl, username, password)
             }
         } else {
