@@ -14,7 +14,7 @@ data class TeamDTO(
 object MicrosoftService {
     private val tenantId = System.getenv("tenantId")
     private val clientId = System.getenv("clientId")
-    private val clientSecret = System.getenv("clientSecret")
+    private val clientSecret = System.getenv("CLIENT_SECRET")
 
     private val scopes = "https://graph.microsoft.com/.default"
     private val credential = ClientSecretCredentialBuilder().clientId(clientId).tenantId(tenantId).clientSecret(clientSecret).build()
