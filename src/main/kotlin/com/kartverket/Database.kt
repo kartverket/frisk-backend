@@ -40,6 +40,8 @@ object Database {
                         File(serverCertPath).exists()
                         File(clientCertPath).exists()
                         File(clientKeyPath).exists()
+                        // Logg out the contents of clien-key.pem
+                        logger.info(File(clientKeyPath).readText())
 
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
@@ -65,7 +67,6 @@ object Database {
                 driverClassName = "org.postgresql.Driver"
             }
         }
-        logger.info("Database password: ${hikariConfig.password}")
         logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
         try {
             dataSource = HikariDataSource(hikariConfig)
