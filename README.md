@@ -12,3 +12,4 @@ Du trenger Docker Desktop eller tilsvarende (Podman) for å kjøre dette prosjek
 Voila! Du kjører nå backend lokalt.
 
 Kjør `docker compose down --volumes --remove-orphans` for å stoppe Docker Compose.
+
