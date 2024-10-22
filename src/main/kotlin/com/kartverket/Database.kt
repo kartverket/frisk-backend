@@ -32,13 +32,13 @@ object Database {
                     }
 
                     else -> {
+                        logger.info("Using gcp database configuration")
                         val caCertPath = "/app/db-ssl-ca/server.crt"
-                        logger.info(File(caCertPath).readText())
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$caCertPath"
+                        }:5432/frisk-backend-db"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
@@ -91,14 +91,14 @@ object Database {
                 }
             } else {
                 val caCertPath = "/app/db-ssl-ca/server.crt"
-                val username = System.getenv("DATABASE_USER")
+                val username = "admin"
                 val password = System.getenv("DATABASE_PASSWORD")
                 // Create database URL from these variables
                 val jdbcUrl = "jdbc:postgresql://${
                     System.getenv(
                         "DATABASE_HOST",
                     )
-                }:5432/frisk-backend-db?ssl=true&sslmode=verify-ca&sslrootcert=$caCertPath"
+                }:5432/frisk-backend-db"
                 flywayConfig.dataSource(jdbcUrl, username, password)
             }
         } else {
