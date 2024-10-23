@@ -36,9 +36,6 @@ object Database {
                         val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
                         val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
                         val clientKeyPath = "/app/db-ssl-ca/client-key.pk8"
-                        // Logg out the contents of clien-key.pem
-
-                        logger.info(File(clientKeyPath).readText())
 
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
