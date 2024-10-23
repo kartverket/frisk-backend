@@ -33,8 +33,8 @@ object Database {
 
                     else -> {
                         logger.info("Using gcp database configuration")
-                        val serverCertPath = "/app/db-ssl-ca/server-ca.crt"
-                        val clientCertPath = "/app/db-ssl-ca/client-cert.crt"
+                        val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
+                        val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
                         val clientKeyPath = "/app/db-ssl-ca/client-key.key"
                         // Logg out the contents of clien-key.pem
 
