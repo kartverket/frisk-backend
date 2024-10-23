@@ -47,7 +47,7 @@ object Database {
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$serverCertPath&sslcert=$clientCertPath&sslkey=$clientKeyPath"
+                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$clientCertPath&sslcert=$serverCertPath&sslkey=$clientKeyPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
