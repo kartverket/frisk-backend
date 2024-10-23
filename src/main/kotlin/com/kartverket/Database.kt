@@ -35,7 +35,7 @@ object Database {
                         logger.info("Using gcp database configuration")
                         val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
                         val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
-                        val clientKeyPath = "/app/db-ssl-ca/client-key.key"
+                        val clientKeyPath = "/app/db-ssl-ca/client-key.pk8"
                         // Logg out the contents of clien-key.pem
 
                         logger.info(File(clientKeyPath).readText())
@@ -98,7 +98,7 @@ object Database {
                 logger.info("Using gcp database configuration for migration")
                 val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
                 val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
-                val clientKeyPath = "/app/db-ssl-ca/client-key.pem"
+                val clientKeyPath = "/app/db-ssl-ca/client-key.pk8"
                 val username = "admin"
                 val password = System.getenv("DATABASE_PASSWORD")
                 val jdbcUrl = "jdbc:postgresql://${
