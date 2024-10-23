@@ -33,21 +33,18 @@ object Database {
 
                     else -> {
                         logger.info("Using gcp database configuration")
-                        val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
-                        val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
-                        val clientKeyPath = "/app/db-ssl-ca/client-key.pem"
-                        // Assert that the certificates exist
-                        File(serverCertPath).exists()
-                        File(clientCertPath).exists()
-                        File(clientKeyPath).exists()
+                        val serverCertPath = "/app/db-ssl-ca/server-ca.crt"
+                        val clientCertPath = "/app/db-ssl-ca/client-cert.crt"
+                        val clientKeyPath = "/app/db-ssl-ca/client-key.key"
                         // Logg out the contents of clien-key.pem
+
                         logger.info(File(clientKeyPath).readText())
 
                         jdbcUrl = "jdbc:postgresql://${
                             System.getenv(
                                 "DATABASE_HOST",
                             )
-                        }:5432/frisk-backend-db?sslmode=verify-ca&sslrootcert=$clientCertPath&sslcert=$serverCertPath&sslkey=$clientKeyPath"
+                        }:5432/frisk-backend-db?sslmode=require&sslrootcert=$serverCertPath$&sslcert=$clientCertPath&sslkey=$clientKeyPath"
                         username = "admin"
                         password = System.getenv("DATABASE_PASSWORD") ?: ""
                         driverClassName = "org.postgresql.Driver"
