@@ -1,5 +1,7 @@
 package com.kartverket.plugins
 import com.auth0.jwk.JwkProviderBuilder
+import com.kartverket.functions.metadata.FunctionMetadataService
+import com.kartverket.microsoft.MicrosoftService
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -45,4 +47,47 @@ fun Application.configureAuth() {
 
 fun JWTPayloadHolder.getUserId(): String {
     return this.payload.getClaim("oid").asString()
+}
+
+fun hasMetadataAccess(userId: String, metadataId: Int): Boolean {
+    val metadata = FunctionMetadataService.getFunctionMetadataById(metadataId) ?: run {
+        return false
+    }
+    return hasFunctionAccess(userId, metadata.functionId)
+}
+
+fun ApplicationCall.hasMetadataAccess(metadataId: Int): Boolean {
+    val userId = this.getUserId() ?: run {
+        return false
+    }
+    val metadata = FunctionMetadataService.getFunctionMetadataById(metadataId) ?: run {
+        return false
+    }
+    return hasMetadataAccess(userId, metadata.id)
+}
+
+fun hasFunctionAccess(userId: String, functionId: Int): Boolean {
+    val functionTeams = FunctionMetadataService.getFunctionMetadata(functionId, "team", null)
+
+    return if (functionTeams.isEmpty()) {
+        true
+    } else {
+        functionTeams.any { hasTeamAccess(userId, it.value) }
+    }
+}
+
+fun ApplicationCall.hasFunctionAccess(functionId: Int): Boolean {
+    val userId = this.getUserId() ?: run {
+        return false
+    }
+    return hasFunctionAccess(userId, functionId)
+}
+
+fun hasTeamAccess(userId: String, teamId: String): Boolean {
+    val userTeams = MicrosoftService.getMemberGroups(userId)
+    return userTeams.any { it.id == teamId }
+}
+
+fun ApplicationCall.getUserId(): String? {
+    return this.principal<JWTPrincipal>()?.getUserId()
 }

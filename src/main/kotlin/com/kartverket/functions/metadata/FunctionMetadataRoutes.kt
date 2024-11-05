@@ -1,5 +1,7 @@
 package com.kartverket.functions.metadata
 
+import com.kartverket.plugins.hasFunctionAccess
+import com.kartverket.plugins.hasMetadataAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -26,6 +28,12 @@ fun Route.functionMetadataRoutes() {
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@post
                     }
+
+                    if (!call.hasFunctionAccess(id)) {
+                        call.respond(HttpStatusCode.Forbidden)
+                        return@post
+                    }
+
                     val metadata = call.receive<CreateFunctionMetadataDTO>()
                     FunctionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
@@ -60,6 +68,11 @@ fun Route.functionMetadataRoutes() {
                 }
                 val updatedMetadata = call.receive<UpdateFunctionMetadataDTO>()
 
+                if (!call.hasMetadataAccess(id)) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@patch
+                }
+
                 FunctionMetadataService.updateMetadataValue(id, updatedMetadata)
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -69,6 +82,12 @@ fun Route.functionMetadataRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
                     return@delete
                 }
+
+                if (!call.hasMetadataAccess(id)) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@delete
+                }
+
                 FunctionMetadataService.deleteMetadata(id)
                 call.respond(HttpStatusCode.NoContent)
             }

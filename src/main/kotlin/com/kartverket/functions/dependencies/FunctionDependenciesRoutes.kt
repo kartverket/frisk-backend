@@ -1,6 +1,7 @@
 package com.kartverket.functions.dependencies
 
 import com.kartverket.functions.logger
+import com.kartverket.plugins.hasFunctionAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -14,6 +15,12 @@ fun Route.functionDependenciesRoutes() {
                 post {
                     logger.info("Received post on /functions/{id}/dependencies")
                     val newDependency = call.receive<FunctionDependency>()
+
+                    if (!call.hasFunctionAccess(newDependency.functionId)) {
+                        call.respond(HttpStatusCode.Forbidden)
+                        return@post
+                    }
+
                     val dep =
                         FunctionDependencyService.createFunctionDependency(newDependency) ?: run {
                             logger.error("Invalid input")
@@ -31,6 +38,12 @@ fun Route.functionDependenciesRoutes() {
                             call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                             return@delete
                         }
+
+                    if (!call.hasFunctionAccess(id)) {
+                        call.respond(HttpStatusCode.Forbidden)
+                        return@delete
+                    }
+
                     val depId =
                         call.parameters["dependencyId"]?.toInt() ?: run {
                             logger.error("Invalid id parameter")

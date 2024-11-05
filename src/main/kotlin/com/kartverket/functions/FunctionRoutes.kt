@@ -1,5 +1,6 @@
 package com.kartverket.functions
 
+import com.kartverket.plugins.hasFunctionAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -52,6 +53,13 @@ fun Route.functionRoutes() {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@put
                     }
+
+                if (!call.hasFunctionAccess(id)) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@put
+                }
+
+
                 val updatedFunction = call.receive<UpdateFunctionDto>()
                 val f =
                     FunctionService.updateFunction(id, updatedFunction) ?: run {
@@ -68,6 +76,12 @@ fun Route.functionRoutes() {
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@delete
                     }
+
+                if (!call.hasFunctionAccess(id)) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@delete
+                }
+
                 FunctionService.deleteFunction(id)
                 call.respond(HttpStatusCode.NoContent)
             }
