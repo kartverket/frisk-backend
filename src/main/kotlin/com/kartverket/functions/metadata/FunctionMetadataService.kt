@@ -31,6 +31,31 @@ enum class SpecialMetadataKey(val key: String) {
 
 object FunctionMetadataService {
 
+    fun getFunctionMetadataById(id: Int): FunctionMetadata? {
+        val query = """
+            SELECT fm.id, fm.function_id, fmk.key, fm.value 
+            FROM function_metadata fm 
+            INNER JOIN function_metadata_keys fmk ON fm.key_id = fmk.id
+            WHERE fm.id = ?
+        """.trimIndent()
+
+        Database.getConnection().use { connection ->
+            connection.prepareStatement(query).use { statement ->
+                statement.setInt(1, id)
+                val resultSet = statement.executeQuery()
+                if (resultSet.next()) {
+                    return FunctionMetadata(
+                        id = resultSet.getInt("id"),
+                        functionId = resultSet.getInt("function_id"),
+                        key = resultSet.getString("key"),
+                        value = resultSet.getString("value"),
+                    )
+                }
+            }
+        }
+        return null
+    }
+
     fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
         require(!(functionId == null && key == null)) { "functionId and key cannot both be null" }
 
