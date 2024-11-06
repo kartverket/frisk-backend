@@ -1,5 +1,7 @@
 package com.kartverket.functions
 
+import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.plugins.hasFunctionAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,13 +22,18 @@ fun Route.functionRoutes() {
         }
         post {
             logger.info("Received post on /functions")
-            val newFunction = call.receive<CreateFunctionDto>()
+            val newFunction = call.receive<CreateFunctionWithMetadataDto>()
             val f =
-                FunctionService.createFunction(newFunction) ?: run {
+                FunctionService.createFunction(newFunction.function) ?: run {
                     logger.error("Invalid input")
                     call.respond(HttpStatusCode.InternalServerError)
                     return@post
                 }
+            if (newFunction.metadata.isNotEmpty()) {
+                newFunction.metadata.forEach { m ->
+                    FunctionMetadataService.addMetadataToFunction(f.id, m)
+                }
+            }
             call.respond(f)
         }
         route("/{id}") {

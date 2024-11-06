@@ -1,6 +1,7 @@
 package com.kartverket.functions
 
 import com.kartverket.Database
+import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
@@ -21,6 +22,13 @@ data class CreateFunctionDto(
     val description: String? = null,
     val parentId: Int,
 )
+
+@Serializable
+data class CreateFunctionWithMetadataDto(
+    val function: CreateFunctionDto,
+    val metadata: List<CreateFunctionMetadataDTO>
+)
+
 
 @Serializable
 data class UpdateFunctionDto(
