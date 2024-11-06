@@ -31,7 +31,7 @@ fun Route.functionRoutes() {
                 }
             if (newFunction.metadata.isNotEmpty()) {
                 newFunction.metadata.forEach { m ->
-                    FunctionMetadataService.addMetadataToFunction(f.id, CreateFunctionMetadataDTO(m.key, m.value))
+                    FunctionMetadataService.addMetadataToFunction(f.id, m)
                 }
             }
             call.respond(f)
