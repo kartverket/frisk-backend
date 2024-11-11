@@ -14,6 +14,7 @@ data class Function(
     val description: String?,
     val parentId: Int?,
     val path: String,
+    val orderIndex: Int
 )
 
 @Serializable
@@ -36,6 +37,7 @@ data class UpdateFunctionDto(
     val description: String? = null,
     val parentId: Int?,
     val path: String,
+    val orderIndex: Int,
 )
 
 object FunctionService {
@@ -85,7 +87,7 @@ object FunctionService {
     fun getChildren(id: Int): List<Function> {
         logger.info("Getting childeren with: $id")
         val functions = mutableListOf<Function>()
-        val query = "SELECT * FROM functions WHERE parent_id = ?"
+        val query = "SELECT * FROM functions WHERE parent_id = ? ORDER BY order_index"
         logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
@@ -122,10 +124,34 @@ object FunctionService {
         updatedFunction: UpdateFunctionDto,
     ): Function? {
         logger.info("Updating function with id: $id")
-        val query = "UPDATE functions SET name = ?, description = ?, parent_id = ? WHERE id = ? RETURNING *"
-        logger.debug("Preparing database query: $query")
+        val query1 = """
+            WITH current_order AS (
+                SELECT id, order_index
+                FROM functions
+                WHERE parent_id = (SELECT parent_id FROM functions WHERE id = ?)
+            )
+            UPDATE functions f
+            SET order_index = CASE 
+                WHEN id = ? THEN ?
+                WHEN order_index < (SELECT order_index FROM current_order WHERE id = ?) THEN order_index + 1
+                ELSE order_index
+            END
+            WHERE parent_id = (SELECT parent_id FROM functions WHERE id = ?) AND id != ?;
+        """.trimIndent()
+
+        val query2 = "UPDATE functions SET name = ?, description = ?, parent_id = ?, order_index = ? WHERE id = ? RETURNING *"
+        logger.debug("Preparing database query: $query2")
         Database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
+            connection.prepareStatement(query1).use { statement ->
+                statement.setInt(1, id)
+                statement.setInt(2, id)
+                statement.setInt(3, updatedFunction.orderIndex)
+                statement.setInt(4, id)
+                statement.setInt(5, id)
+                statement.setInt(6, id)
+                statement.executeUpdate()
+            }
+            connection.prepareStatement(query2).use { statement ->
                 statement.setString(1, updatedFunction.name)
                 statement.setString(2, updatedFunction.description)
                 if (updatedFunction.parentId != null) {
@@ -133,7 +159,8 @@ object FunctionService {
                 } else {
                     statement.setNull(3, Types.INTEGER)
                 }
-                statement.setInt(4, id)
+                statement.setInt(4, updatedFunction.orderIndex)
+                statement.setInt(5, id)
                 val resultSet = statement.executeQuery()
                 if (!resultSet.next()) return null
                 return resultSet.toFunction()
@@ -164,6 +191,7 @@ object FunctionService {
             description = getString("description"),
             parentId,
             path = getString("path"),
+            orderIndex = getInt("order_index")
         )
     }
 }
