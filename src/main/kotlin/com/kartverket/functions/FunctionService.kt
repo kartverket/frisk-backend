@@ -124,48 +124,32 @@ object FunctionService {
         updatedFunction: UpdateFunctionDto,
     ): Function? {
         logger.info("Updating function with id: $id")
-        val query1 = """
-            WITH current_order AS (
-                SELECT id, order_index
-                FROM functions
-                WHERE parent_id = (SELECT parent_id FROM functions WHERE id = ?)
-            )
-            UPDATE functions f
-            SET order_index = CASE 
-                WHEN id = ? THEN ?
-                WHEN order_index < (SELECT order_index FROM current_order WHERE id = ?) THEN order_index + 1
-                ELSE order_index
-            END
-            WHERE parent_id = (SELECT parent_id FROM functions WHERE id = ?) AND id != ?;
-        """.trimIndent()
+        var result: Function? = null
 
-        val query2 = "UPDATE functions SET name = ?, description = ?, parent_id = ?, order_index = ? WHERE id = ? RETURNING *"
-        logger.debug("Preparing database query: $query2")
+        val query = "SELECT * FROM update_function(?, ?, ?, ?, ?);"
+        logger.debug("Preparing database query: $query")
         Database.getConnection().use { connection ->
-            connection.prepareStatement(query1).use { statement ->
-                statement.setInt(1, id)
-                statement.setInt(2, id)
-                statement.setInt(3, updatedFunction.orderIndex)
-                statement.setInt(4, id)
-                statement.setInt(5, id)
-                statement.setInt(6, id)
-                statement.executeUpdate()
-            }
-            connection.prepareStatement(query2).use { statement ->
-                statement.setString(1, updatedFunction.name)
-                statement.setString(2, updatedFunction.description)
+
+            connection.prepareStatement(query).use { statement ->
+                var i = 1
+
+                statement.setInt(i++, id)
+                statement.setInt(i++, updatedFunction.orderIndex)
+                statement.setString(i++, updatedFunction.name)
+                statement.setString(i++, updatedFunction.description)
                 if (updatedFunction.parentId != null) {
-                    statement.setInt(3, updatedFunction.parentId)
+                    statement.setInt(i, updatedFunction.parentId)
                 } else {
-                    statement.setNull(3, Types.INTEGER)
+                    statement.setNull(i, Types.INTEGER)
                 }
-                statement.setInt(4, updatedFunction.orderIndex)
-                statement.setInt(5, id)
+
                 val resultSet = statement.executeQuery()
-                if (!resultSet.next()) return null
-                return resultSet.toFunction()
+                while (resultSet.next()) {
+                    result = resultSet.toFunction()
+                }
             }
         }
+        return result
     }
 
     fun deleteFunction(id: Int): Boolean {
