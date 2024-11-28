@@ -30,7 +30,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateFunctionDto"
+              $ref: "#/components/schemas/CreateFunctionWithMetadataDto"
         required: true
       responses:
         "500":
@@ -64,6 +64,12 @@ paths:
               examples:
                 Example#1:
                   value: "You have to supply an id"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
         "204":
           description: "No Content"
           content:
@@ -124,6 +130,12 @@ paths:
               examples:
                 Example#1:
                   value: "You have to supply an id"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
         "404":
           description: "Not Found"
           content:
@@ -163,121 +175,6 @@ paths:
                 type: "array"
                 items:
                   $ref: "#/components/schemas/Function"
-  /functions/{id}/dependencies:
-    get:
-      description: ""
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "400":
-          description: "Bad Request"
-          content:
-            '*/*':
-              schema:
-                type: "string"
-              examples:
-                Example#1:
-                  value: "You have to supply an id"
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                type: "array"
-                items:
-                  type: "integer"
-                  format: "int32"
-    post:
-      description: ""
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "string"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/FunctionDependency"
-        required: true
-      responses:
-        "500":
-          description: "Internal Server Error"
-          content:
-            '*/*':
-              schema:
-                type: "object"
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/FunctionDependency"
-  /functions/{id}/dependencies/{dependencyId}:
-    delete:
-      description: ""
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      - name: "dependencyId"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "400":
-          description: "Bad Request"
-          content:
-            '*/*':
-              schema:
-                type: "string"
-              examples:
-                Example#1:
-                  value: "You have to supply an id"
-                Example#2:
-                  value: "You have to supply an id"
-        "204":
-          description: "No Content"
-          content:
-            '*/*':
-              schema:
-                type: "object"
-  /functions/{id}/dependents:
-    get:
-      description: ""
-      parameters:
-      - name: "id"
-        in: "path"
-        required: true
-        schema:
-          type: "integer"
-      responses:
-        "400":
-          description: "Bad Request"
-          content:
-            '*/*':
-              schema:
-                type: "string"
-              examples:
-                Example#1:
-                  value: "You have to supply an id"
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                type: "array"
-                items:
-                  type: "integer"
-                  format: "int32"
   /functions/{id}/metadata:
     get:
       description: ""
@@ -329,12 +226,31 @@ paths:
               examples:
                 Example#1:
                   value: "Invalid function id!"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
         "204":
           description: "No Content"
           content:
             '*/*':
               schema:
                 type: "object"
+  /health:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Up and running!"
   /metadata:
     get:
       description: ""
@@ -382,6 +298,12 @@ paths:
               examples:
                 Example#1:
                   value: "Invalid metadata id!"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
         "204":
           description: "No Content"
           content:
@@ -427,6 +349,12 @@ paths:
               examples:
                 Example#1:
                   value: "Invalid metadata id!"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "object"
         "204":
           description: "No Content"
           content:
@@ -524,6 +452,9 @@ components:
           format: "int32"
         path:
           type: "string"
+        orderIndex:
+          type: "integer"
+          format: "int32"
       required:
       - "name"
       - "path"
@@ -539,6 +470,28 @@ components:
           format: "int32"
       required:
       - "name"
+    CreateFunctionMetadataDTO:
+      type: "object"
+      properties:
+        key:
+          type: "string"
+        value:
+          type: "string"
+      required:
+      - "key"
+      - "value"
+    CreateFunctionWithMetadataDto:
+      type: "object"
+      properties:
+        function:
+          $ref: "#/components/schemas/CreateFunctionDto"
+        metadata:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CreateFunctionMetadataDTO"
+      required:
+      - "function"
+      - "metadata"
     UpdateFunctionDto:
       type: "object"
       properties:
@@ -551,18 +504,12 @@ components:
           format: "int32"
         path:
           type: "string"
+        orderIndex:
+          type: "integer"
+          format: "int32"
       required:
       - "name"
       - "path"
-    FunctionDependency:
-      type: "object"
-      properties:
-        functionId:
-          type: "integer"
-          format: "int32"
-        dependencyFunctionId:
-          type: "integer"
-          format: "int32"
     FunctionMetadata:
       type: "object"
       properties:
@@ -572,16 +519,6 @@ components:
         functionId:
           type: "integer"
           format: "int32"
-        key:
-          type: "string"
-        value:
-          type: "string"
-      required:
-      - "key"
-      - "value"
-    CreateFunctionMetadataDTO:
-      type: "object"
-      properties:
         key:
           type: "string"
         value:
