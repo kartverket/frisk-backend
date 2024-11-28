@@ -23,7 +23,7 @@ fun Application.module() {
     configureAuth()
     configureRouting()
 
-    environment.monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopped) {
         Database.closePool()
     }
 }
