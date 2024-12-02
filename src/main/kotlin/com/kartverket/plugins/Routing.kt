@@ -1,6 +1,5 @@
 package com.kartverket.plugins
 
-import com.kartverket.functions.dependencies.functionDependenciesRoutes
 import com.kartverket.functions.functionRoutes
 import com.kartverket.functions.metadata.functionMetadataRoutes
 import com.kartverket.microsoft.microsoftRoutes
@@ -16,7 +15,6 @@ fun Application.configureRouting() {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
             functionRoutes()
-            functionDependenciesRoutes()
             functionMetadataRoutes()
             microsoftRoutes()
         }
