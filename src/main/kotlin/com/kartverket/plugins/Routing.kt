@@ -20,10 +20,10 @@ fun Application.configureRouting() {
             functionMetadataRoutes()
             microsoftRoutes()
             get("/dump") {
-                if (!call.hasSuperUserAccess()) {
-                    call.respond(HttpStatusCode.Forbidden)
-                    return@get
-                }
+//                if (!call.hasSuperUserAccess()) {
+//                    call.respond(HttpStatusCode.Forbidden)
+//                    return@get
+//                }
                 val fileName = "data.csv"
                 call.response.header(
                     HttpHeaders.ContentDisposition,
