@@ -88,6 +88,16 @@ fun hasTeamAccess(userId: String, teamId: String): Boolean {
     return userTeams.any { it.id == teamId }
 }
 
+fun hasSuperUserAccess(userId: String): Boolean {
+    val superUserEmail = System.getenv("SUPER_USER_EMAIL")
+    return MicrosoftService.getUserEmail(userId) == superUserEmail
+}
+
+fun ApplicationCall.hasSuperUserAccess(): Boolean {
+    val userId = this.getUserId() ?: return false
+    return hasSuperUserAccess(userId)
+}
+
 fun ApplicationCall.getUserId(): String? {
     return this.principal<JWTPrincipal>()?.getUserId()
 }
