@@ -1,8 +1,6 @@
 services:
   db:
     image: postgres
-    volumes:
-      - ./tmp/db:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: frisk-backend-db
       POSTGRES_USER: postgres
