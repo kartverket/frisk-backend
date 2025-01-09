@@ -12,9 +12,11 @@ Følg stegene nedenfor for å komme i gang, og bruk de tilgjengelige skriptene f
 ## Sette opp database lokalt
 
 ### Steg 1
-Start med å klone repoet fra GitHub:
+Start med å klone repoet fra GitHub.
 
-`git clone <repository-url>`
+Med SSH: `git clone git@github.com:kartverket/frisk-backend.git`
+
+Med HTTPS: `git clone https://github.com/kartverket/frisk-backend.git`
 
 ### Steg 2
 For å sette opp databasen må man ha installert Docker eller tilsvarende (Podman). Dette kan du gjøre ved å kjøre denne kommandoen:
@@ -43,6 +45,7 @@ Nå skal databasen være oppe og kjøre!
 ## Kjøre backend lokalt
 
 ### Steg 1
+Slik kan du sette opp på IntelliJ:
 - Gå inn på `Run -> Edit configurations`
 - Trykk på + for å legge til ny konfigurasjon og velg KTOR
 - Trykk på `modify options` og huk av `use classpath of module`
