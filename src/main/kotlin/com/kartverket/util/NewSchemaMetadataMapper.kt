@@ -19,10 +19,12 @@ class NewSchemaMetadataMapper {
             val contextId = m.value.split(":").first()
             val tableId = fetchTableId(contextId)
 
-            addMetadataToFunction(
-                m.functionId,
-                CreateFunctionMetadataDTO(key = tableId, value = contextId)
-            )
+            if (tableId != null) {
+                addMetadataToFunction(
+                    m.functionId,
+                    CreateFunctionMetadataDTO(key = tableId, value = contextId)
+                )
+            }
         }
     }
 
@@ -41,9 +43,9 @@ class NewSchemaMetadataMapper {
         }
     }
 
-    suspend fun fetchTableId(contextId: String): String {
+    suspend fun fetchTableId(contextId: String): String? {
         val client = HttpClient(CIO)
-        try {
+        return try {
             val baseUrl = when (System.getenv("environment")) {
                 "production" -> {
                     if (System.getenv("platform") == "flyio") {
@@ -58,12 +60,12 @@ class NewSchemaMetadataMapper {
             val response: HttpResponse =
                 client.get("$baseUrl/contexts/$contextId/tableId")
             if (response.status == HttpStatusCode.OK) {
-                return response.bodyAsText()
+                response.bodyAsText()
             } else {
-                throw Exception("Failed to fetch tableId: ${response.status}")
+                null
             }
         } catch (e: Exception) {
-            throw Exception("Error fetching tableId for contextId $contextId: ${e.message}", e)
+            null
         } finally {
             client.close()
         }
