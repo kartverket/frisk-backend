@@ -1,9 +1,11 @@
 package com.kartverket
 
 import com.kartverket.plugins.*
+import com.kartverket.util.NewSchemaMetadataMapper
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.launch
 
 fun main() {
     embeddedServer(
@@ -22,6 +24,9 @@ fun Application.module() {
     configureCors()
     configureAuth()
     configureRouting()
+    launch {
+        NewSchemaMetadataMapper().addNewSchemaMetadata()
+    }
 
     environment.monitor.subscribe(ApplicationStopped) {
         Database.closePool()
