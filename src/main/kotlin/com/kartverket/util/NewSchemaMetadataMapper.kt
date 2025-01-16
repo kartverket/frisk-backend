@@ -51,7 +51,8 @@ class NewSchemaMetadataMapper {
                     if (System.getenv("platform") == "flyio") {
                         "https://regelrett-frontend-1024826672490.europe-north1.run.app/api"
                     } else {
-                        "https://regelrett.atgcp1-prod.kartverket-intern.cloud/api"
+                        val skipEnv = System.getenv("skipEnv")
+                        "https://regelrett.atgcp1-${skipEnv}.kartverket-intern.cloud/api"
                     }
                 }
                 else -> "https://regelrett-frontend-1024826672490.europe-north1.run.app/api"
