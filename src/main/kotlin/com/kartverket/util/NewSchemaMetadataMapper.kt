@@ -52,17 +52,7 @@ class NewSchemaMetadataMapper {
     suspend fun fetchTableId(contextId: String): String? {
         val client = HttpClient(CIO)
         return try {
-            val baseUrl = when (System.getenv("environment")) {
-                "production" -> {
-                    if (System.getenv("platform") == "flyio") {
-                        "https://regelrett-frontend-1024826672490.europe-north1.run.app/api"
-                    } else {
-                        val skipEnv = System.getenv("skipEnv")
-                        "https://regelrett.atgcp1-${skipEnv}.kartverket-intern.cloud/api"
-                    }
-                }
-                else -> "https://regelrett-frontend-1024826672490.europe-north1.run.app/api"
-            }
+            val baseUrl = System.getenv("REGELRETT_URL") ?: "https://regelrett-frontend-1024826672490.europe-north1.run.app/api"
             logger.info("Kaller på regelrett")
             val response: HttpResponse =
                 client.get("$baseUrl/contexts/$contextId/tableId")
