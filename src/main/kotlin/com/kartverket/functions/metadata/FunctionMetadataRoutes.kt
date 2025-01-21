@@ -54,9 +54,9 @@ fun Route.functionMetadataRoutes() {
         get("indicator") {
             val functionId = call.request.queryParameters["functionId"]?.toInt() ?: throw BadRequestException("Invalid function key!")
             val key = call.request.queryParameters["key"] ?: throw BadRequestException("Invalid function key!")
-            val value = call.request.queryParameters["value"] ?: throw BadRequestException("Invalid function key!")
+            val value = call.request.queryParameters["value"]
 
-            val functions = FunctionMetadataService.test(key, value, functionId)
+            val functions = FunctionMetadataService.getIndicators(key, value, functionId)
             call.respond(functions)
         }
         route("/keys") {
