@@ -6,6 +6,8 @@ import com.kartverket.microsoft.MicrosoftService
 import com.microsoft.graph.models.odataerrors.ODataError
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
+import java.sql.SQLType
+import java.sql.Types
 
 @Serializable
 data class FunctionMetadata(
@@ -176,19 +178,28 @@ object FunctionMetadataService {
         }
     }
 
-    fun test(key: String, value: String, path: String) {
-        val query = "SELECT * FROM functions AS f " +
+    fun test(key: String, value: String, functionId: Int): List<Function> {
+//        val query = "SELECT * FROM functions AS f " +
+//                "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
+//                "INNER JOIN function_metadata_keys AS fmk on fm.key_id = fmk.id " +
+//                "WHERE fmk.key = ? AND fm.value = ? AND (f.path <@ ? OR f.path @> ?)"
+
+
+        val query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
+                "SELECT * FROM functions AS f " +
                 "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
                 "INNER JOIN function_metadata_keys AS fmk on fm.key_id = fmk.id " +
-                "WHERE fmk.key = ? AND fm.value = ? AND f.path @> ?"
+                "CROSS JOIN fpath " +
+                "WHERE fmk.key = ? AND fm.value = ? AND (f.path <@ fpath.path OR f.path @> fpath.path)"
 
         val functions = mutableListOf<Function>()
 
         Database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
-                statement.setString(1, path)
+                statement.setInt(1, functionId)
                 statement.setString(2, key)
                 statement.setString(3, value)
+
                 val resultSet = statement.executeQuery()
                 while (resultSet.next()) {
                     functions.add(Function(
@@ -200,6 +211,7 @@ object FunctionMetadataService {
                         orderIndex = resultSet.getInt("order_index"),
                     ))
                 }
+                return functions
             }
         }
     }
