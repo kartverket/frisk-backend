@@ -9,7 +9,7 @@ spec:
   type: "service"
   lifecycle: "production"
   owner: "skvis"
-  system: "sikkerhetsmetrikker"
+  system: "funksjon-skjema-register"
   providesApis:
   - "frisk-backend-api"
 ---
