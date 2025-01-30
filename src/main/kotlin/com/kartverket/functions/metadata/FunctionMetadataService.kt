@@ -177,12 +177,6 @@ object FunctionMetadataService {
     }
 
     fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
-//        val query = "SELECT * FROM functions AS f " +
-//                "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
-//                "INNER JOIN function_metadata_keys AS fmk on fm.key_id = fmk.id " +
-//                "WHERE fmk.key = ? AND fm.value = ? AND (f.path <@ ? OR f.path @> ?)"
-
-
         var query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
                 "SELECT * FROM functions AS f " +
                 "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
