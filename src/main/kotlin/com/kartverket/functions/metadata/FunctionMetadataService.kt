@@ -1,6 +1,7 @@
 package com.kartverket.functions.metadata
 
 import com.kartverket.Database
+import com.kartverket.functions.Function
 import com.kartverket.microsoft.MicrosoftService
 import com.microsoft.graph.models.odataerrors.ODataError
 import kotlinx.serialization.Serializable
@@ -171,6 +172,44 @@ object FunctionMetadataService {
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 statement.executeUpdate()
+            }
+        }
+    }
+
+    fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
+        var query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
+                "SELECT * FROM functions AS f " +
+                "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
+                "INNER JOIN function_metadata_keys AS fmk on fm.key_id = fmk.id " +
+                "CROSS JOIN fpath " +
+                "WHERE fmk.key = ? AND (f.path <@ fpath.path OR f.path @> fpath.path)"
+
+        if (value != null) {
+            query += " AND fm.value = ?"
+        }
+
+        val functions = mutableListOf<Function>()
+
+        Database.getConnection().use { connection ->
+            connection.prepareStatement(query).use { statement ->
+                statement.setInt(1, functionId)
+                statement.setString(2, key)
+                if (value != null) {
+                    statement.setString(3, value)
+                }
+
+                val resultSet = statement.executeQuery()
+                while (resultSet.next()) {
+                    functions.add(Function(
+                        id = resultSet.getInt("id"),
+                        name = resultSet.getString("name"),
+                        description = resultSet.getString("description"),
+                        path = resultSet.getString("path"),
+                        parentId = resultSet.getInt("parent_id"),
+                        orderIndex = resultSet.getInt("order_index"),
+                    ))
+                }
+                return functions
             }
         }
     }

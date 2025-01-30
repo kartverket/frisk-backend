@@ -4,6 +4,7 @@ import com.kartverket.plugins.hasFunctionAccess
 import com.kartverket.plugins.hasMetadataAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -49,6 +50,14 @@ fun Route.functionMetadataRoutes() {
 
             val metadata = FunctionMetadataService.getFunctionMetadata(functionId, key, value)
             call.respond(metadata)
+        }
+        get("indicator") {
+            val functionId = call.request.queryParameters["functionId"]?.toInt() ?: throw BadRequestException("Invalid function key!")
+            val key = call.request.queryParameters["key"] ?: throw BadRequestException("Invalid function key!")
+            val value = call.request.queryParameters["value"]
+
+            val functions = FunctionMetadataService.getIndicators(key, value, functionId)
+            call.respond(functions)
         }
         route("/keys") {
             get {
