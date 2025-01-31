@@ -14,32 +14,6 @@ spec:
   - "frisk-backend-api"
 ---
 apiVersion: "backstage.io/v1alpha1"
-kind: "Group"
-metadata:
-  name: "security_champion_frisk-backend"
-  title: "Security Champion frisk-backend"
-spec:
-  type: "security_champion"
-  parent: "eiendom_security_champions"
-  members:
-  - "larsore"
-  children:
-  - "resource:frisk-backend"
----
-apiVersion: "backstage.io/v1alpha1"
-kind: "Resource"
-metadata:
-  name: "frisk-backend"
-  links:
-  - url: "https://github.com/kartverket/frisk-backend"
-    title: "frisk-backend på GitHub"
-spec:
-  type: "repo"
-  owner: "security_champion_frisk-backend"
-  dependencyOf:
-  - "component:frisk-backend"
----
-apiVersion: "backstage.io/v1alpha1"
 kind: "API"
 metadata:
   name: "frisk-backend-api"
