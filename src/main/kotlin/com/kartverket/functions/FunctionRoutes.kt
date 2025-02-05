@@ -61,10 +61,10 @@ fun Route.functionRoutes() {
                         return@put
                     }
 
-                if (!call.hasFunctionAccess(id)) {
-                    call.respond(HttpStatusCode.Forbidden)
-                    return@put
-                }
+//                if (!call.hasFunctionAccess(id)) {
+//                    call.respond(HttpStatusCode.Forbidden)
+//                    return@put
+//                }
 
 
                 val updatedFunction = call.receive<UpdateFunctionDto>()
