@@ -1,13 +1,16 @@
-## Beskrivelse
+**Beskrivelse**
 
-💳 Lenke til [Notionkort]()
+🥅 Mål med PRen: *Hvorfor er oppgaven laget og hvilke problem løser denne PRen?*
 
-🥅 Mål med PRen: _Hvorfor er oppgaven laget og hvilke problem løser denne PRen?_
+**Løsning**
 
-## Løsning
+🆕 Endring: *Skriv kort hva endringen i denne PRen er og hvorfor den har løst problemet.*
 
-🆕 Endring: _Skriv kort hva endringen i denne PRen er og hvorfor den har løst problemet._
+**🧪 Testing**
 
-## 🧪 Testing
+*Er det noe spesielt den som reviewer PRen bør sjekke?*
 
-_Er det noe spesielt den som reviewer PRen bør sjekke?_
+🔒 **Sikkerhet / Trusselvurdering**
+
+- Er det potensielle risikoer knyttet til endringen?
+- Trengs det noen sikkerhetstiltak eller ytterligere vurderinger?
