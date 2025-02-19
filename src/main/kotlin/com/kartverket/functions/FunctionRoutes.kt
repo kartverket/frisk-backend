@@ -84,7 +84,7 @@ fun Route.functionRoutes() {
                         return@delete
                     }
 
-                if (!call.hasFunctionAccess(id)) {
+                if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
                 }
