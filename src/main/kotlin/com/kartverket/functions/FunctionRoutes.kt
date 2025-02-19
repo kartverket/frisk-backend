@@ -1,8 +1,8 @@
 package com.kartverket.functions
 
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.plugins.hasFunctionAccess
+import com.kartverket.plugins.hasSuperUserAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -61,10 +61,10 @@ fun Route.functionRoutes() {
                         return@put
                     }
 
-//                if (!call.hasFunctionAccess(id)) {
-//                    call.respond(HttpStatusCode.Forbidden)
-//                    return@put
-//                }
+                if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@put
+                }
 
 
                 val updatedFunction = call.receive<UpdateFunctionDto>()

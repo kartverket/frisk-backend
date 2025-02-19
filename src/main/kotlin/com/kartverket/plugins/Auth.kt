@@ -1,5 +1,6 @@
 package com.kartverket.plugins
 import com.auth0.jwk.JwkProviderBuilder
+import com.kartverket.configuration.AppConfig
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.microsoft.MicrosoftService
 import io.ktor.server.application.*
@@ -89,8 +90,8 @@ fun hasTeamAccess(userId: String, teamId: String): Boolean {
 }
 
 fun hasSuperUserAccess(userId: String): Boolean {
-    val superUserEmail = System.getenv("SUPER_USER_EMAIL")
-    return MicrosoftService.getUserEmail(userId) == superUserEmail
+    val superUserTeamId = AppConfig.superUser.teamId ?: return false
+    return hasTeamAccess(userId, superUserTeamId)
 }
 
 fun ApplicationCall.hasSuperUserAccess(): Boolean {
