@@ -15,7 +15,7 @@ fun Route.functionMetadataRoutes() {
         route("/{id}") {
             route("/metadata") {
                 get {
-                    val id = call.parameters["id"]?.toInt()
+                    val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@get
@@ -24,7 +24,7 @@ fun Route.functionMetadataRoutes() {
                     call.respond(metadata)
                 }
                 post {
-                    val id = call.parameters["id"]?.toInt()
+                    val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@post
@@ -70,7 +70,7 @@ fun Route.functionMetadataRoutes() {
                 call.respond(HttpStatusCode.NotImplemented)
             }
             patch {
-                val id = call.parameters["id"]?.toInt()
+                val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
                     return@patch
@@ -86,7 +86,7 @@ fun Route.functionMetadataRoutes() {
                 call.respond(HttpStatusCode.NoContent)
             }
             delete {
-                val id = call.parameters["id"]?.toInt()
+                val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
                     return@delete
