@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlin_version: String by project
 val logback_version: String by project
@@ -70,5 +71,13 @@ tasks {
     withType<ShadowJar> {
         isZip64 = true
         mergeServiceFiles()
+    }
+    withType<Test> {
+        testLogging {
+            showCauses = true
+            showExceptions = true
+            exceptionFormat = TestExceptionFormat.FULL
+            events("passed", "skipped", "failed")
+        }
     }
 }
