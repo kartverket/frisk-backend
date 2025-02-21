@@ -2,7 +2,6 @@ package com.kartverket.functions.metadata
 
 import com.kartverket.plugins.hasFunctionAccess
 import com.kartverket.plugins.hasMetadataAccess
-import com.kartverket.plugins.hasSuperUserAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -39,15 +38,6 @@ fun Route.functionMetadataRoutes() {
                     val metadata = call.receive<CreateFunctionMetadataDTO>()
                     FunctionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
-                }
-                get("access") {
-                    val id = call.parameters["id"]?.toInt() ?: run {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid function id")
-                        return@get
-                    }
-
-                    val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
-                    call.respond(hasAccess)
                 }
             }
         }
