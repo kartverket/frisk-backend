@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlin_version: String by project
 val logback_version: String by project
@@ -53,6 +54,10 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:postgresql:1.20.4")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
 }
 
 flyway {
@@ -66,5 +71,13 @@ tasks {
     withType<ShadowJar> {
         isZip64 = true
         mergeServiceFiles()
+    }
+    withType<Test> {
+        testLogging {
+            showCauses = true
+            showExceptions = true
+            exceptionFormat = TestExceptionFormat.FULL
+            events("passed", "skipped", "failed")
+        }
     }
 }
