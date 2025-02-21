@@ -103,6 +103,17 @@ fun Route.functionRoutes() {
                 val children = FunctionService.getChildren(id)
                 call.respond(children)
             }
+            get("access") {
+                logger.info("Received get request on functions/{id}/access")
+                val id = call.parameters["id"]?.toInt() ?: run {
+                    logger.error("Invalid id parameter")
+                    call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    return@get
+                }
+
+                val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                call.respond(hasAccess)
+            }
         }
     }
 }
