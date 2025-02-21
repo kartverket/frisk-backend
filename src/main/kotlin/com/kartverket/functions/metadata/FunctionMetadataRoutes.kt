@@ -40,7 +40,7 @@ fun Route.functionMetadataRoutes() {
                     FunctionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
                 }
-                get("access") {
+                get("/access") {
                     val id = call.parameters["id"]?.toInt() ?: run {
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id")
                         return@get

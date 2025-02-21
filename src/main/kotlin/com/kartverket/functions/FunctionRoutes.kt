@@ -103,7 +103,7 @@ fun Route.functionRoutes() {
                 val children = FunctionService.getChildren(id)
                 call.respond(children)
             }
-            get("access") {
+            get("/access") {
                 logger.info("Received get request on functions/{id}/access")
                 val id = call.parameters["id"]?.toInt() ?: run {
                     logger.error("Invalid id parameter")
