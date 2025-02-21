@@ -32,9 +32,6 @@ object MicrosoftService {
         return graphClient.groups().byGroupId(groupId).get().toTeamDTO()
     }
 
-    fun getUserEmail(userId: String): String {
-        return graphClient.users().byUserId(userId).get().mail
-    }
 }
 
 fun Group.toTeamDTO(): TeamDTO {
