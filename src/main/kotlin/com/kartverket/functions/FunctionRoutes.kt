@@ -41,12 +41,13 @@ fun Route.functionRoutes() {
                 logger.info("Received get on /functions/{id}")
                 val id =
                     call.parameters["id"]?.toInt() ?: run {
-                        logger.error("Invalid id parameter")
+                        logger.warn("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
                 val f =
                     FunctionService.getFunction(id) ?: run {
+                        logger.warn("Function not found")
                         call.respond(HttpStatusCode.NotFound)
                         return@get
                     }
@@ -56,12 +57,13 @@ fun Route.functionRoutes() {
                 logger.info("Received put on /functions/{id}")
                 val id =
                     call.parameters["id"]?.toInt() ?: run {
-                        logger.error("Invalid id parameter")
+                        logger.warn("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@put
                     }
 
                 if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
+                    logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@put
                 }
@@ -79,12 +81,13 @@ fun Route.functionRoutes() {
                 logger.info("Received delete on /functions/{id}")
                 val id =
                     call.parameters["id"]?.toInt() ?: run {
-                        logger.error("Invalid id parameter")
+                        logger.warn("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@delete
                     }
 
                 if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
+                    logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
                 }
@@ -96,7 +99,7 @@ fun Route.functionRoutes() {
                 logger.info("Received get request on functions/{id}/childeren")
                 val id =
                     call.parameters["id"]?.toInt() ?: run {
-                        logger.error("Invalid id parameter")
+                        logger.warn("Invalid id parameter")
                         call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
                         return@get
                     }
