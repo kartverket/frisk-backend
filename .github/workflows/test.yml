@@ -1,7 +1,7 @@
 name: Run Tests
 
 on:
-  pull_requests:
+  pull_request:
     branches:
       - staging
       - main
