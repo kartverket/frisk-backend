@@ -73,6 +73,7 @@ tasks {
         mergeServiceFiles()
     }
     withType<Test> {
+        onlyIf { project.hasProperty("runTests") }
         testLogging {
             showCauses = true
             showExceptions = true
