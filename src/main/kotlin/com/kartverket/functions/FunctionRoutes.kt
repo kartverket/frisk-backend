@@ -23,10 +23,16 @@ fun Route.functionRoutes() {
         post {
             logger.info("Received post on /functions")
             val newFunction = call.receive<CreateFunctionWithMetadataDto>()
+
+            if (newFunction.function.name.isBlank() || newFunction.function.parentId <= 0) {
+                logger.error("Invalid function input")
+                call.respond(HttpStatusCode.BadRequest, "Function name and parent ID are required")
+                return@post
+            }
             val f =
                 FunctionService.createFunction(newFunction.function) ?: run {
-                    logger.error("Invalid input")
-                    call.respond(HttpStatusCode.InternalServerError)
+                    logger.error("Function creation failed")
+                    call.respond(HttpStatusCode.InternalServerError, "Failed to create function")
                     return@post
                 }
             if (newFunction.metadata.isNotEmpty()) {
@@ -40,9 +46,9 @@ fun Route.functionRoutes() {
             get {
                 logger.info("Received get on /functions/{id}")
                 val id =
-                    call.parameters["id"]?.toInt() ?: run {
-                        logger.warn("Invalid id parameter")
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    call.parameters["id"]?.toIntOrNull() ?: run {
+                        logger.warn("Invalid id parameter: ${call.parameters["id"]}")
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                         return@get
                     }
                 val f =
@@ -56,9 +62,9 @@ fun Route.functionRoutes() {
             put {
                 logger.info("Received put on /functions/{id}")
                 val id =
-                    call.parameters["id"]?.toInt() ?: run {
-                        logger.warn("Invalid id parameter")
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    call.parameters["id"]?.toIntOrNull() ?: run {
+                        logger.warn("Invalid id parameter: ${call.parameters["id"]}")
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                         return@put
                     }
 
@@ -80,9 +86,9 @@ fun Route.functionRoutes() {
             delete {
                 logger.info("Received delete on /functions/{id}")
                 val id =
-                    call.parameters["id"]?.toInt() ?: run {
-                        logger.warn("Invalid id parameter")
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    call.parameters["id"]?.toIntOrNull() ?: run {
+                        logger.warn("Invalid id parameter: ${call.parameters["id"]}")
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                         return@delete
                     }
 
@@ -98,13 +104,24 @@ fun Route.functionRoutes() {
             get("/children") {
                 logger.info("Received get request on functions/{id}/childeren")
                 val id =
-                    call.parameters["id"]?.toInt() ?: run {
-                        logger.warn("Invalid id parameter")
-                        call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    call.parameters["id"]?.toIntOrNull() ?: run {
+                        logger.warn("Invalid id parameter: ${call.parameters["id"]}")
+                        call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                         return@get
                     }
                 val children = FunctionService.getChildren(id)
                 call.respond(children)
+            }
+            get("/access") {
+                logger.info("Received get request on functions/{id}/access")
+                val id = call.parameters["id"]?.toInt() ?: run {
+                    logger.error("Invalid id parameter")
+                    call.respond(HttpStatusCode.BadRequest, "You have to supply an id")
+                    return@get
+                }
+
+                val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                call.respond(hasAccess)
             }
         }
     }

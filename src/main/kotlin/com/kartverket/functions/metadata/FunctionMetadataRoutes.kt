@@ -2,6 +2,7 @@ package com.kartverket.functions.metadata
 
 import com.kartverket.plugins.hasFunctionAccess
 import com.kartverket.plugins.hasMetadataAccess
+import com.kartverket.plugins.hasSuperUserAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -19,7 +20,7 @@ fun Route.functionMetadataRoutes() {
         route("/{id}") {
             route("/metadata") {
                 get {
-                    val id = call.parameters["id"]?.toInt()
+                    val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         logger.warn("Invalid id parameter in Received get request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
@@ -29,7 +30,7 @@ fun Route.functionMetadataRoutes() {
                     call.respond(metadata)
                 }
                 post {
-                    val id = call.parameters["id"]?.toInt()
+                    val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         logger.warn("Invalid id parameter in Received post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
@@ -45,6 +46,15 @@ fun Route.functionMetadataRoutes() {
                     val metadata = call.receive<CreateFunctionMetadataDTO>()
                     FunctionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
+                }
+                get("/access") {
+                    val id = call.parameters["id"]?.toInt() ?: run {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid function id")
+                        return@get
+                    }
+
+                    val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                    call.respond(hasAccess)
                 }
             }
         }
@@ -83,7 +93,7 @@ fun Route.functionMetadataRoutes() {
                 call.respond(HttpStatusCode.NotImplemented)
             }
             patch {
-                val id = call.parameters["id"]?.toInt()
+                val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
                     logger.error("Invalid id parameter in patch request on metadata/{id}")
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
@@ -101,7 +111,7 @@ fun Route.functionMetadataRoutes() {
                 call.respond(HttpStatusCode.NoContent)
             }
             delete {
-                val id = call.parameters["id"]?.toInt()
+                val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
                     logger.error("Invalid id parameter in delete request on metadata/{id}")
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
