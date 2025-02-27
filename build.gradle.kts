@@ -73,6 +73,9 @@ tasks {
         mergeServiceFiles()
     }
     withType<Test> {
+        if (System.getenv("SKIP_TESTS") == "true") {
+            enabled = false
+        }
         testLogging {
             showCauses = true
             showExceptions = true
