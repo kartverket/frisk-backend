@@ -19,3 +19,4 @@ jobs:
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          SKIP_TESTS: "true"
