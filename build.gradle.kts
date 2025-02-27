@@ -73,10 +73,6 @@ tasks {
         mergeServiceFiles()
     }
     withType<Test> {
-        logger.info("SKIP_TESTS: ${System.getenv("SKIP_TESTS")}")
-        if (System.getenv("SKIP_TESTS") == "true") {
-            enabled = false
-        }
         testLogging {
             showCauses = true
             showExceptions = true
