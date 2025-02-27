@@ -16,9 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+      - run: flyctl deploy --remote-only -x tests
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-          SKIP_TESTS: "true"
-          TESTCONTAINERS_RYUK_DISABLED: true
-          TESTCONTAINERS_CHECKS_DISABLE: true
