@@ -10,7 +10,7 @@ import java.sql.Connection
 import java.sql.ResultSet
 
 object Database {
-    private lateinit var dataSource: HikariDataSource
+    lateinit var dataSource: HikariDataSource
     private val logger = KtorSimpleLogger("Database")
 
     fun getDump(): List<DumpRow> {

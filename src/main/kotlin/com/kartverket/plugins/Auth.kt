@@ -89,8 +89,8 @@ fun hasTeamAccess(userId: String, teamId: String): Boolean {
 }
 
 fun hasSuperUserAccess(userId: String): Boolean {
-    val superUserEmail = System.getenv("SUPER_USER_EMAIL")
-    return MicrosoftService.getUserEmail(userId) == superUserEmail
+    val superUserGroupId = System.getenv("SUPER_USER_GROUP_ID") ?: return false
+    return hasTeamAccess(userId, superUserGroupId)
 }
 
 fun ApplicationCall.hasSuperUserAccess(): Boolean {
