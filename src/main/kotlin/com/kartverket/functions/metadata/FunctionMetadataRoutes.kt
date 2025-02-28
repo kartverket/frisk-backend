@@ -69,7 +69,7 @@ fun Route.functionMetadataRoutes() {
             call.respond(metadata)
         }
         get("indicator") {
-            val functionId = call.request.queryParameters["functionId"]?.toInt() ?: run {
+            val functionId = call.request.queryParameters["functionId"]?.toIntOrNull() ?: run {
                 logger.warn("Bad request: Invalid or missing 'functionId' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
             }
