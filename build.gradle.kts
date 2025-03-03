@@ -46,6 +46,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt")
     implementation("io.ktor:ktor-server-swagger")
     implementation("com.azure:azure-identity:1.+")
+    implementation("net.minidev:json-smart:2.5.2") /* kan slettes når Azure oppdaterer denne selv*/
     implementation("com.microsoft.graph:microsoft-graph:6.16.0")
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-cio")
@@ -56,6 +57,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.apache.commons:commons-compress:1.26.0")
     testImplementation("org.testcontainers:postgresql:1.20.4")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
 }
