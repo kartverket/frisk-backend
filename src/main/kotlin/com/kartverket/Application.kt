@@ -2,7 +2,6 @@ package com.kartverket
 
 import com.kartverket.configuration.AppConfig
 import com.kartverket.plugins.*
-import com.kartverket.util.NewSchemaMetadataMapper
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
 import io.ktor.server.config.*
@@ -71,9 +70,6 @@ fun Application.module() {
     configureCors()
     configureAuth()
     configureRouting()
-    launch {
-        NewSchemaMetadataMapper().addNewSchemaMetadata()
-    }
 
     launchCleanupJob()
 
