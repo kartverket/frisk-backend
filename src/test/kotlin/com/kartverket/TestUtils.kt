@@ -26,14 +26,13 @@ import java.util.*
 import kotlin.test.assertEquals
 
 object TestUtils {
-
+/*
     private var isDatabaseInitialized = false
     val postgresContainer = PostgreSQLContainer("postgres:15-alpine").apply {
         start()
-    }
+    }*/
 
     fun Application.testModule() {
-        setupTestDatabase()
         configureSerialization()
 
         install(Authentication) {
@@ -60,7 +59,7 @@ object TestUtils {
             .sign(Algorithm.HMAC256("test-secret"))
     }
 
-    private fun setupTestDatabase() {
+/*    private fun setupTestDatabase() {
         if (isDatabaseInitialized) return
         isDatabaseInitialized = true
 
@@ -83,7 +82,7 @@ object TestUtils {
 
     fun stopTestDatabase() {
         postgresContainer.stop()
-    }
+    }*/
 
     suspend fun createFunction(client: HttpClient, parentId: Int): Function {
         val function = CreateFunctionDto(

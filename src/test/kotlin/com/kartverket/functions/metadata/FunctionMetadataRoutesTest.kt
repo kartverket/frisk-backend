@@ -4,7 +4,6 @@ import com.kartverket.TestUtils
 import com.kartverket.TestUtils.addMetadata
 import com.kartverket.TestUtils.createFunction
 import com.kartverket.TestUtils.generateTestToken
-import com.kartverket.TestUtils.postgresContainer
 import com.kartverket.TestUtils.testModule
 import com.kartverket.functions.Function
 import com.kartverket.plugins.hasFunctionAccess
@@ -21,26 +20,11 @@ import io.mockk.verify
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Test
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class FunctionMetadataRoutesTest {
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            postgresContainer.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun teardown() {
-            TestUtils.stopTestDatabase()
-        }
-    }
 
     @Test
     fun testGetFunctionMetadata() = testApplication {

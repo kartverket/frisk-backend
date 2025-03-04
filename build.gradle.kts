@@ -18,6 +18,10 @@ plugins {
 group = "com.kartverket"
 version = "0.0.1"
 
+kotlin {
+    jvmToolchain(21)
+}
+
 application {
     mainClass.set("com.kartverket.ApplicationKt")
 
@@ -53,12 +57,11 @@ dependencies {
     implementation("io.ktor:ktor-client-cio-jvm:2.3.12")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.mockk:mockk:1.13.16")
-    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:testcontainers:1.20.5")
     testImplementation("org.apache.commons:commons-compress:1.26.0")
-    testImplementation("org.testcontainers:postgresql:1.20.4")
+    testImplementation("org.testcontainers:postgresql:1.20.5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
 }
 
@@ -81,5 +84,6 @@ tasks {
             exceptionFormat = TestExceptionFormat.FULL
             events("passed", "skipped", "failed")
         }
+        useJUnitPlatform()
     }
 }
