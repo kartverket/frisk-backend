@@ -7,15 +7,7 @@ assignees: ''
 
 ---
 
-🧍 **Brukerhistorie**
-
-Som en
-Ønsker jeg
-Slik at
-
-(Evt inkl hva en bruker ikke skal ha mulighet til å gjøre - sikkerhet)
-
-🎯 **Løsningsbeskrivelse**
+🧍 **Problembeskrivelse**
 
 ⚙️ **Akseptansekriterier**
 
