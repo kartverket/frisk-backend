@@ -184,25 +184,26 @@ class FunctionRoutesTest {
             parentId = 1,
             orderIndex = 1
         )
-        mockkObject(FunctionService)
-        every { FunctionService.getFunction(functionId) } returns mockedFunction
+        mockkObject(FunctionService) {
+            every { FunctionService.getFunction(functionId) } returns mockedFunction
 
-        val response = client.get("/functions/$functionId") {
-            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            val response = client.get("/functions/$functionId") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+
+            val fetchedFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
+            assertEquals(functionId, fetchedFunction.id)
+            assertEquals("Test Function", fetchedFunction.name)
+            assertEquals("Test Description", fetchedFunction.description)
+            assertEquals("1.1", fetchedFunction.path)
+            assertEquals(1, fetchedFunction.parentId)
+            assertEquals(1, fetchedFunction.orderIndex)
+
+            verify { FunctionService.getFunction(functionId) }
+            confirmVerified(FunctionService)
         }
-
-        assertEquals(HttpStatusCode.OK, response.status)
-
-        val fetchedFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
-        assertEquals(functionId, fetchedFunction.id)
-        assertEquals("Test Function", fetchedFunction.name)
-        assertEquals("Test Description", fetchedFunction.description)
-        assertEquals("1.1", fetchedFunction.path)
-        assertEquals(1, fetchedFunction.parentId)
-        assertEquals(1, fetchedFunction.orderIndex)
-
-        verify { FunctionService.getFunction(functionId) }
-        confirmVerified(FunctionService)
     }
 
     @Test
@@ -224,17 +225,18 @@ class FunctionRoutesTest {
 
         val functionId = 1234567913
 
-        mockkObject(FunctionService)
-        every { FunctionService.getFunction(functionId) } returns null
+        mockkObject(FunctionService) {
+            every { FunctionService.getFunction(functionId) } returns null
 
-        val response = client.get("/functions/$functionId") {
-            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            val response = client.get("/functions/$functionId") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            }
+
+            assertEquals(HttpStatusCode.NotFound, response.status)
+
+            verify { FunctionService.getFunction(functionId) }
+            confirmVerified(FunctionService)
         }
-
-        assertEquals(HttpStatusCode.NotFound, response.status)
-
-        verify { FunctionService.getFunction(functionId) }
-        confirmVerified(FunctionService)
     }
 
     @Test
