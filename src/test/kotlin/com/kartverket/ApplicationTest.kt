@@ -1,4 +1,5 @@
 import com.kartverket.configuration.AppConfig
+import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.configureAPILayer
 import io.ktor.client.request.*
@@ -11,10 +12,12 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
 
 class ApplicationTest {
+    private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
+
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
-            configureAPILayer(AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList()))
+            configureAPILayer(exampleConfig)
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -54,7 +57,11 @@ class ApplicationTest {
     @Test
     fun `Verify that CORS is enabled`() = testApplication {
         application {
-            configureAPILayer(AppConfig(FunctionHistoryCleanupConfig(1, 1), listOf("test.com")))
+            configureAPILayer(
+                exampleConfig.copy(
+                    allowedCORSHosts = listOf("test.com")
+                )
+            )
         }
 
         val failedCors = client.get("/health") {
