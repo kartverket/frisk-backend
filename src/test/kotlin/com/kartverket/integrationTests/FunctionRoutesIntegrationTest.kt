@@ -115,14 +115,14 @@ class FunctionRoutesIntegrationTest {
 
         @JvmStatic
         @BeforeAll
-        fun setup(): Unit {
+        fun setup() {
             database = TestDatabase()
             database.setupTestDatabase()
         }
 
         @JvmStatic
         @AfterAll
-        fun cleanup(): Unit {
+        fun cleanup() {
             database.stopTestDatabase()
         }
     }
