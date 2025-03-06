@@ -58,7 +58,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation("io.mockk:mockk:1.13.17")
     testImplementation("org.testcontainers:testcontainers:1.20.5")
     testImplementation("org.apache.commons:commons-compress:1.26.0")
     testImplementation("org.testcontainers:postgresql:1.20.5")
