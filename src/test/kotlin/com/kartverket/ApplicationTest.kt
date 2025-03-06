@@ -1,9 +1,12 @@
 import com.kartverket.Database
 import com.kartverket.module
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.every
 import io.mockk.mockkObject
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
@@ -52,5 +55,29 @@ class ApplicationTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `Verify that CORS is enabled`() = testApplication {
+        application {
+            // Mock the Database object with stubs to avoid actual DB initialization and migrations during the test
+            mockkObject(Database) {
+                every { Database.initDatabase() } returns Unit
+                every { Database.migrate() } returns Unit
+                module()
+            }
+        }
+
+        val failedCors = client.get("/health") {
+            header(HttpHeaders.Origin, "https://test1234.com")
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, failedCors.status)
+
+        val successCors = client.get("/health") {
+            header(HttpHeaders.Origin, "https://test.com")
+        }
+
+        assertEquals(HttpStatusCode.OK, successCors.status)
     }
 }
