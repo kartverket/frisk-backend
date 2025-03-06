@@ -1,6 +1,7 @@
 package com.kartverket
 
 import com.kartverket.configuration.AppConfig
+import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.plugins.*
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
@@ -25,19 +26,15 @@ fun main() {
     ).start(wait = true)
 }
 
-private fun loadAppConfig(config: ApplicationConfig) {
-    AppConfig.load(config)
-}
-
-fun CoroutineScope.launchCleanupJob(): Job {
-    val cleanupIntervalWeeks = AppConfig.functionHistoryCleanup.cleanupIntervalWeeks
+fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistoryCleanupConfig): Job {
+    val cleanupIntervalWeeks = functionHistoryCleanupConfig.cleanupIntervalWeeks
     val cleanupInterval: Duration = (cleanupIntervalWeeks * 7).days
 
     return launch(Dispatchers.IO) {
         while (isActive) {
             try {
                 logger.info("Running scheduled cleanup every $cleanupIntervalWeeks weeks.")
-                cleanupFunctionsHistory()
+                cleanupFunctionsHistory(functionHistoryCleanupConfig.deleteOlderThanDays)
             } catch (e: Exception) {
                 logger.error("Error during function history cleanup: ${e.message}")
             }
@@ -46,34 +43,34 @@ fun CoroutineScope.launchCleanupJob(): Job {
     }
 }
 
-fun cleanupFunctionsHistory() {
-    val deleteOlderThanDays = AppConfig.functionHistoryCleanup.deleteOlderThanDays
+fun cleanupFunctionsHistory(deleteOlderThanDays: Int) {
     logger.info("Running scheduled cleanup for functions_history table. Deleting entries older than $deleteOlderThanDays days.")
 
     Database.getConnection().use { conn ->
-        conn.prepareStatement("DELETE FROM functions_history WHERE valid_from < NOW() - INTERVAL '$deleteOlderThanDays days'")
+        conn.prepareStatement("DELETE FROM functions_history WHERE valid_from < NOW() - INTERVAL '? days'")
             .use { stmt ->
+                stmt.setInt(1, deleteOlderThanDays)
                 val deletedRows = stmt.executeUpdate()
                 logger.info("Cleanup completed. Deleted $deletedRows rows.")
             }
     }
 }
 
-
 fun Application.module() {
-    loadAppConfig(environment.config)
-
+    val config = AppConfig.load(environment.config)
     Database.initDatabase()
     Database.migrate()
-
-    configureSerialization()
-    configureCors()
-    configureAuth()
-    configureRouting()
-
-    launchCleanupJob()
+    configureAPILayer(config)
+    launchCleanupJob(config.functionHistoryCleanup)
 
     environment.monitor.subscribe(ApplicationStopped) {
         Database.closePool()
     }
+}
+
+fun Application.configureAPILayer(config: AppConfig) {
+    configureSerialization()
+    configureCors(config)
+    configureAuth()
+    configureRouting()
 }

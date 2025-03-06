@@ -1,12 +1,13 @@
 package com.kartverket.plugins
 
+import com.kartverket.configuration.AppConfig
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.routing.*
 
-fun Application.configureCors() {
+fun Application.configureCors(config: AppConfig) {
     install(CORS) {
-        allowHost("test.com")
+        config.allowedCORSHosts.forEach { host -> allowHost(host) }
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Get)
