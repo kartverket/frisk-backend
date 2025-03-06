@@ -14,17 +14,22 @@ object Database {
     private val logger = KtorSimpleLogger("Database")
 
     fun getDump(): List<DumpRow> {
-        val query = "select * from functions f inner join function_metadata fm on fm.function_id = f.id inner join function_metadata_keys fmk on fmk.id = fm.key_id"
-        val dump = mutableListOf<DumpRow>()
+        val query =
+            """
+    select * from functions f
+    inner join function_metadata fm on fm.function_id = f.id
+    inner join function_metadata_keys fmk on fmk.id = fm.key_id
+""".trimIndent()
         getConnection().use { connection ->
             connection.prepareStatement(query).use { preparedStatement ->
                 val resultSet = preparedStatement.executeQuery()
-                while (resultSet.next()) {
-                    dump.add(resultSet.toDumpRow())
+                return buildList {
+                    while (resultSet.next()) {
+                        add(resultSet.toDumpRow())
+                    }
                 }
             }
         }
-        return dump
     }
 
     fun initDatabase(databaseConfig: DatabaseConfig) {
