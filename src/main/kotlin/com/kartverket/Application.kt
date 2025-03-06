@@ -58,7 +58,7 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int) {
 
 fun Application.module() {
     val config = AppConfig.load(environment.config)
-    Database.initDatabase()
+    Database.initDatabase(config.databaseConfig)
     Database.migrate()
     configureAPILayer(config)
     launchCleanupJob(config.functionHistoryCleanup)
