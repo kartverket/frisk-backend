@@ -47,7 +47,7 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int) {
     logger.info("Running scheduled cleanup for functions_history table. Deleting entries older than $deleteOlderThanDays days.")
 
     Database.getConnection().use { conn ->
-        conn.prepareStatement("DELETE FROM functions_history WHERE valid_from < NOW() - INTERVAL '? days'")
+        conn.prepareStatement("DELETE FROM functions_history WHERE valid_from < NOW() - make_interval(days := ?)")
             .use { stmt ->
                 stmt.setInt(1, deleteOlderThanDays)
                 val deletedRows = stmt.executeUpdate()
