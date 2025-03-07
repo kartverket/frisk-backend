@@ -37,3 +37,7 @@ soft_limit = 100
 
 [env]
 ALLOWED_CORS_HOSTS = "frisk-frontend.fly.dev,localhost:5173"
+JDBC_URL = "jdbc:postgresql://frisk-backend-db.flycast:5432/frisk_backend?sslmode=disable"
+DATABASE_USERNAME = "frisk_backend"
+# Settes inne på fly
+# DATABASE_PASSWORD =
