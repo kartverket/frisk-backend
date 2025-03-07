@@ -8,4 +8,5 @@ EXPOSE 8080
 WORKDIR ./app
 COPY build/libs/*.jar /app/frisk-backend.jar
 USER user
+ENV ALLOWED_CORS_HOSTS="frisk.atgcp1-dev.kartverket-intern.cloud,frisk.atgcp1-prod.kartverket-intern.cloud"
 ENTRYPOINT ["java","-jar","/app/frisk-backend.jar"]

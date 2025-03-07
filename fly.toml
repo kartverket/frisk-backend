@@ -34,3 +34,6 @@ soft_limit = 100
 type = "connections"
 hard_limit = 100
 soft_limit = 100
+
+[env]
+ALLOWED_CORS_HOSTS = "frisk-frontend.fly.dev"
