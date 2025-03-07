@@ -5,7 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.kartverket.functions.CreateFunctionDto
 import com.kartverket.functions.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
+import com.kartverket.functions.FunctionService
 import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.plugins.AUTH_JWT
 import com.kartverket.plugins.configureRouting
 import com.kartverket.plugins.configureSerialization
@@ -18,11 +20,22 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.sql.Connection
 import java.util.*
 import kotlin.test.assertEquals
 
 object TestUtils {
-    fun Application.testModule() {
+    private val mockDatabase: Database = object : Database {
+        override fun getDump(): List<DumpRow> {
+            TODO("Not yet implemented")
+        }
+
+        override fun getConnection(): Connection {
+            TODO("Not yet implemented")
+        }
+
+    }
+    fun Application.testModule(testDatabase: Database = mockDatabase) {
         configureSerialization()
 
         install(Authentication) {
@@ -38,7 +51,9 @@ object TestUtils {
                 validate { credentials -> JWTPrincipal(credentials.payload) }
             }
         }
-        configureRouting()
+        configureRouting(testDatabase)
+        FunctionService.database = testDatabase
+        FunctionMetadataService.database = testDatabase
     }
 
     fun generateTestToken(): String {

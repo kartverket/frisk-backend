@@ -1,5 +1,6 @@
 package com.kartverket.integrationTests
 
+import com.kartverket.JDBCDatabase
 import com.kartverket.TestDatabase
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
@@ -26,11 +27,10 @@ class FunctionMetadataIntegrationTest {
 
     @Test
     fun `Create, read, update and delete function metadata`() = testApplication {
+        val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
         application {
-            testModule()
+            testModule(database)
         }
-        val database = TestDatabase()
-        database.setupTestDatabase()
 
         val functionName = "${UUID.randomUUID()}"
 
@@ -112,19 +112,18 @@ class FunctionMetadataIntegrationTest {
 
     companion object {
 
-        private lateinit var database: TestDatabase
+        private lateinit var testDatabase: TestDatabase
 
         @JvmStatic
         @BeforeAll
         fun setup() {
-            database = TestDatabase()
-            database.setupTestDatabase()
+            testDatabase = TestDatabase()
         }
 
         @JvmStatic
         @AfterAll
         fun cleanup() {
-            database.stopTestDatabase()
+            testDatabase.stopTestDatabase()
         }
     }
 }
