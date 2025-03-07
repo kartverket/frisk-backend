@@ -60,7 +60,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("org.testcontainers:testcontainers:1.20.5")
-    testImplementation("org.apache.commons:commons-compress:1.26.0")
+    testImplementation("org.apache.commons:commons-compress:1.27.1")
     testImplementation("org.testcontainers:postgresql:1.20.5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
 }
