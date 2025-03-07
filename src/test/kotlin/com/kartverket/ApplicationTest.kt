@@ -1,3 +1,5 @@
+import com.kartverket.DumpRow
+import com.kartverket.Database
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
@@ -10,14 +12,25 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
+import java.sql.Connection
 
 class ApplicationTest {
     private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
+    private val mockDatabase = object : Database {
+        override fun getDump(): List<DumpRow> {
+            TODO("Not yet implemented")
+        }
+
+        override fun getConnection(): Connection {
+            TODO("Not yet implemented")
+        }
+
+    }
 
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
-            configureAPILayer(exampleConfig)
+            configureAPILayer(exampleConfig, mockDatabase)
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -60,7 +73,8 @@ class ApplicationTest {
             configureAPILayer(
                 exampleConfig.copy(
                     allowedCORSHosts = listOf("test.com")
-                )
+                ),
+                mockDatabase
             )
         }
 

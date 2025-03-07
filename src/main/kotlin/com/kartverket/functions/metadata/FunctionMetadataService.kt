@@ -31,6 +31,7 @@ enum class SpecialMetadataKey(val key: String) {
 }
 
 object FunctionMetadataService {
+    lateinit var database: Database
 
     fun getFunctionMetadataById(id: Int): FunctionMetadata? {
         val query = """
@@ -40,7 +41,7 @@ object FunctionMetadataService {
             WHERE fm.id = ?
         """.trimIndent()
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 val resultSet = statement.executeQuery()
@@ -87,7 +88,7 @@ object FunctionMetadataService {
         val whereClause = if (conditions.isNotEmpty()) " WHERE ${conditions.joinToString(" AND ")}" else ""
         val query = baseQuery + whereClause
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 parameters.forEachIndexed { index, param ->
                     when (param) {
@@ -114,7 +115,7 @@ object FunctionMetadataService {
             "SELECT key FROM function_metadata_keys"
         }
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 if (search != null) {
                     statement.setString(1, "%${search.lowercase()}%")
@@ -144,7 +145,7 @@ object FunctionMetadataService {
                 "    ? " +
                 ")"
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, newMetadata.key.lowercase())
                 statement.setInt(2, functionId)
@@ -157,7 +158,7 @@ object FunctionMetadataService {
 
     fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
         val query = "UPDATE function_metadata SET value = ? WHERE id = ?"
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, updatedMetadata.value)
                 statement.setInt(2, id)
@@ -168,7 +169,7 @@ object FunctionMetadataService {
 
     fun deleteMetadata(id: Int) {
         val query = "DELETE FROM function_metadata WHERE id = ?"
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 statement.executeUpdate()
@@ -190,7 +191,7 @@ object FunctionMetadataService {
 
         val functions = mutableListOf<Function>()
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, functionId)
                 statement.setString(2, key)
@@ -200,14 +201,16 @@ object FunctionMetadataService {
 
                 val resultSet = statement.executeQuery()
                 while (resultSet.next()) {
-                    functions.add(Function(
-                        id = resultSet.getInt("id"),
-                        name = resultSet.getString("name"),
-                        description = resultSet.getString("description"),
-                        path = resultSet.getString("path"),
-                        parentId = resultSet.getInt("parent_id"),
-                        orderIndex = resultSet.getInt("order_index"),
-                    ))
+                    functions.add(
+                        Function(
+                            id = resultSet.getInt("id"),
+                            name = resultSet.getString("name"),
+                            description = resultSet.getString("description"),
+                            path = resultSet.getString("path"),
+                            parentId = resultSet.getInt("parent_id"),
+                            orderIndex = resultSet.getInt("order_index"),
+                        )
+                    )
                 }
                 return functions
             }
@@ -224,6 +227,7 @@ object FunctionMetadataService {
                     false
                 }
             }
+
             else -> true
         }
     }
