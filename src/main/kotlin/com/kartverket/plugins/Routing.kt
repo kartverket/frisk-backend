@@ -1,10 +1,10 @@
 package com.kartverket.plugins
 
+import com.kartverket.DumpRow
 import com.kartverket.Database
 import com.kartverket.functions.functionRoutes
 import com.kartverket.functions.metadata.functionMetadataRoutes
 import com.kartverket.microsoft.microsoftRoutes
-import com.kartverket.toCsv
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 
-fun Application.configureRouting() {
+fun Application.configureRouting(database: Database) {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
@@ -31,7 +31,7 @@ fun Application.configureRouting() {
                 )
 
                 call.respondBytes(
-                    bytes = Database.getDump().toCsv().toByteArray(Charsets.UTF_8),
+                    bytes = database.getDump().toCsv().toByteArray(Charsets.UTF_8),
                     contentType = ContentType.Text.CSV.withCharset(Charsets.UTF_8)
                 )
             }
@@ -40,6 +40,15 @@ fun Application.configureRouting() {
             get {
                 call.respondText("Up and running!", ContentType.Text.Plain)
             }
+        }
+    }
+}
+
+fun List<DumpRow>.toCsv(): String {
+    return buildString {
+        appendLine("id,name,description,path,key,value")
+        for (row in this@toCsv) {
+            appendLine("\"${row.id}\",\"${row.name}\",\"${row.description}\",\"${row.path}\",\"${row.key}\",\"${row.value}\"")
         }
     }
 }
