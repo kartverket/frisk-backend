@@ -2,15 +2,24 @@ package com.kartverket.configuration
 
 import io.ktor.server.config.*
 
-object AppConfig {
-    lateinit var functionHistoryCleanup: FunctionHistoryCleanupConfig
+class AppConfig(
+    val functionHistoryCleanup: FunctionHistoryCleanupConfig,
+    val allowedCORSHosts: List<String>
+) {
 
-    fun load(config: ApplicationConfig) {
-        functionHistoryCleanup = FunctionHistoryCleanupConfig(
-            cleanupIntervalWeeks = config.propertyOrNull("functionHistoryCleanup.cleanupIntervalWeeks")?.getString()?.toInt() ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.cleanupIntervalWeeks\""),
-            deleteOlderThanDays = config.propertyOrNull("functionHistoryCleanup.deleteOlderThanDays")?.getString()?.toInt() ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.deleteOlderThanDays\""),
-        )
+    companion object {
+        fun load(config: ApplicationConfig): AppConfig {
+            val allowedCORSHosts = System.getenv("ALLOWED_CORS_HOSTS").split(",")
+            return AppConfig(
+                functionHistoryCleanup = FunctionHistoryCleanupConfig(
+                    cleanupIntervalWeeks = config.propertyOrNull("functionHistoryCleanup.cleanupIntervalWeeks")?.getString()?.toInt() ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.cleanupIntervalWeeks\""),
+                    deleteOlderThanDays = config.propertyOrNull("functionHistoryCleanup.deleteOlderThanDays")?.getString()?.toInt() ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.deleteOlderThanDays\""),
+                ),
+                allowedCORSHosts = allowedCORSHosts
+            )
+        }
     }
+
 }
 
 data class FunctionHistoryCleanupConfig(
