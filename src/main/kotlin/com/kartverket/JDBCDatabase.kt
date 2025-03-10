@@ -9,11 +9,16 @@ import org.flywaydb.core.Flyway
 import java.sql.Connection
 import java.sql.ResultSet
 
-object Database {
-    lateinit var dataSource: HikariDataSource
-    private val logger = KtorSimpleLogger("Database")
+interface Database {
+    fun getDump(): List<DumpRow>
+    fun getConnection(): Connection
+}
 
-    fun getDump(): List<DumpRow> {
+class JDBCDatabase(
+    private val dataSource: HikariDataSource
+) : Database {
+
+    override fun getDump(): List<DumpRow> {
         val query =
             """
     select * from functions f
@@ -32,29 +37,13 @@ object Database {
         }
     }
 
-    fun initDatabase(databaseConfig: DatabaseConfig) {
-        val hikariConfig = HikariConfig().apply {
-            jdbcUrl = databaseConfig.jdbcUrl
-            username = databaseConfig.username
-            password = databaseConfig.password
-            driverClassName = "org.postgresql.Driver"
-        }
-        logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
-        try {
-            dataSource = HikariDataSource(hikariConfig)
-        } catch (e: Exception) {
-            logger.error("Failed to create the HikariDataSource.", e)
-            throw e
-        }
-    }
-
-    fun getConnection(): Connection = dataSource.connection
+    override fun getConnection(): Connection = dataSource.connection
 
     fun closePool() {
         dataSource.close()
     }
 
-    fun migrate() {
+    private fun migrate() {
         val flywayConfig = Flyway.configure()
         flywayConfig.dataSource(dataSource)
 
@@ -67,6 +56,28 @@ object Database {
         } else {
             logger.error("Failed to apply database migrations.")
             // Handle the failure appropriately
+        }
+    }
+
+    companion object {
+        private val logger = KtorSimpleLogger("Database")
+
+        fun create(databaseConfig: DatabaseConfig): JDBCDatabase {
+            val hikariConfig = HikariConfig().apply {
+                jdbcUrl = databaseConfig.jdbcUrl
+                username = databaseConfig.username
+                password = databaseConfig.password
+                driverClassName = "org.postgresql.Driver"
+            }
+            logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
+            return try {
+                JDBCDatabase(HikariDataSource(hikariConfig)).also {
+                    it.migrate()
+                }
+            } catch (e: Exception) {
+                logger.error("Failed to create the HikariDataSource.", e)
+                throw e
+            }
         }
     }
 }
@@ -83,14 +94,7 @@ private fun ResultSet.toDumpRow(): DumpRow {
     )
 }
 
-fun List<DumpRow>.toCsv(): String {
-    return buildString {
-        appendLine("id,name,description,path,key,value")
-        for (row in this@toCsv) {
-            appendLine("\"${row.id}\",\"${row.name}\",\"${row.description}\",\"${row.path}\",\"${row.key}\",\"${row.value}\"")
-        }
-    }
-}
+
 
 @Serializable
 data class DumpRow(

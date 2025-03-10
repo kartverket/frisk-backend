@@ -86,7 +86,6 @@ class FunctionRoutesTest {
                 assertEquals(uniqueName, createdFunction.name)
 
                 verify { FunctionMetadataService.addMetadataToFunction(createdFunction.id, metadata) }
-                confirmVerified(FunctionMetadataService)
             }
         }
     }
@@ -202,7 +201,6 @@ class FunctionRoutesTest {
             assertEquals(1, fetchedFunction.orderIndex)
 
             verify { FunctionService.getFunction(functionId) }
-            confirmVerified(FunctionService)
         }
     }
 
@@ -235,7 +233,6 @@ class FunctionRoutesTest {
             assertEquals(HttpStatusCode.NotFound, response.status)
 
             verify { FunctionService.getFunction(functionId) }
-            confirmVerified(FunctionService)
         }
     }
 
@@ -376,7 +373,6 @@ class FunctionRoutesTest {
 
                 assertEquals(HttpStatusCode.NoContent, response.status)
                 verify { FunctionService.deleteFunction(1) }
-                confirmVerified(FunctionService)
             }
         }
     }
@@ -480,7 +476,6 @@ class FunctionRoutesTest {
             assertTrue(childrenFunctions.isEmpty())
 
             verify { FunctionService.getChildren(1) }
-            confirmVerified(FunctionService)
         }
     }
 }

@@ -26,7 +26,7 @@ fun main() {
     ).start(wait = true)
 }
 
-fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistoryCleanupConfig): Job {
+fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistoryCleanupConfig, database: Database): Job {
     val cleanupIntervalWeeks = functionHistoryCleanupConfig.cleanupIntervalWeeks
     val cleanupInterval: Duration = (cleanupIntervalWeeks * 7).days
 
@@ -34,7 +34,7 @@ fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistor
         while (isActive) {
             try {
                 logger.info("Running scheduled cleanup every $cleanupIntervalWeeks weeks.")
-                cleanupFunctionsHistory(functionHistoryCleanupConfig.deleteOlderThanDays)
+                cleanupFunctionsHistory(functionHistoryCleanupConfig.deleteOlderThanDays, database)
             } catch (e: Exception) {
                 logger.error("Error during function history cleanup: ${e.message}")
             }
@@ -43,10 +43,10 @@ fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistor
     }
 }
 
-fun cleanupFunctionsHistory(deleteOlderThanDays: Int) {
+fun cleanupFunctionsHistory(deleteOlderThanDays: Int, database: Database) {
     logger.info("Running scheduled cleanup for functions_history table. Deleting entries older than $deleteOlderThanDays days.")
 
-    Database.getConnection().use { conn ->
+    database.getConnection().use { conn ->
         conn.prepareStatement("DELETE FROM functions_history WHERE valid_from < NOW() - make_interval(days := ?)")
             .use { stmt ->
                 stmt.setInt(1, deleteOlderThanDays)
@@ -58,19 +58,18 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int) {
 
 fun Application.module() {
     val config = AppConfig.load(environment.config)
-    Database.initDatabase(config.databaseConfig)
-    Database.migrate()
-    configureAPILayer(config)
-    launchCleanupJob(config.functionHistoryCleanup)
+    val database = JDBCDatabase.create(config.databaseConfig)
+    configureAPILayer(config, database)
+    launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
-        Database.closePool()
+        database.closePool()
     }
 }
 
-fun Application.configureAPILayer(config: AppConfig) {
+fun Application.configureAPILayer(config: AppConfig, database: Database) {
     configureSerialization()
     configureCors(config)
     configureAuth()
-    configureRouting()
+    configureRouting(database)
 }

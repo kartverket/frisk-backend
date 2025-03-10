@@ -41,6 +41,7 @@ data class UpdateFunctionDto(
 )
 
 object FunctionService {
+    lateinit var database: Database
     val logger = KtorSimpleLogger("FunctionService")
 
     fun getFunctions(search: String? = null): List<Function> {
@@ -53,7 +54,7 @@ object FunctionService {
             query = "SELECT * FROM functions"
         }
 
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             logger.debug("Preparing database query: $query")
             connection.prepareStatement(query).use { statement ->
                 if (search != null) {
@@ -72,7 +73,7 @@ object FunctionService {
         logger.info("Getting function with id: $id")
         val query = "SELECT * FROM functions where id = ?"
         logger.debug("Preparing database query: $query")
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 val resultSet = statement.executeQuery()
@@ -89,7 +90,7 @@ object FunctionService {
         val functions = mutableListOf<Function>()
         val query = "SELECT * FROM functions WHERE parent_id = ? ORDER BY order_index"
         logger.debug("Preparing database query: $query")
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 val resultSet = statement.executeQuery()
@@ -105,7 +106,7 @@ object FunctionService {
         logger.info("Creating function with: ${newFunction.name}")
         val query = "INSERT INTO functions (name, description, parent_id) VALUES (?, ?, ?) RETURNING *"
         logger.debug("Preparing database query: $query")
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setString(1, newFunction.name)
                 statement.setString(2, newFunction.description)
@@ -128,7 +129,7 @@ object FunctionService {
 
         val query = "SELECT * FROM update_function(?, ?, ?, ?, ?);"
         logger.debug("Preparing database query: $query")
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
 
             connection.prepareStatement(query).use { statement ->
                 var i = 1
@@ -156,7 +157,7 @@ object FunctionService {
         logger.info("Deleting function with id: $id")
         val query = "DELETE FROM functions WHERE id = ?"
         logger.debug("Preparing database query: $query")
-        Database.getConnection().use { connection ->
+        database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.setInt(1, id)
                 return statement.executeUpdate() > 0
