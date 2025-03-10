@@ -2,16 +2,12 @@ package com.kartverket.configuration
 
 import io.ktor.server.config.*
 import org.slf4j.LoggerFactory
-import java.net.URI
 
 data class AppConfig(
     val functionHistoryCleanup: FunctionHistoryCleanupConfig,
     val allowedCORSHosts: List<String>,
     val databaseConfig: DatabaseConfig
 ) {
-
-
-
     companion object {
         fun load(config: ApplicationConfig): AppConfig {
             val allowedCORSHosts = System.getenv("ALLOWED_CORS_HOSTS").split(",")
@@ -48,47 +44,33 @@ class DatabaseConfig(
 
         fun load(): DatabaseConfig {
             val env = System.getenv("environment")
-            return if (env == "production") {
-                val platform = System.getenv("platform")
-                if (platform == "flyio") {
-                    logger.info("Using Fly.io database configuration")
-                    System.getenv("DATABASE_URL").let { databaseUrl ->
-                        val dbUri = URI(databaseUrl)
-                        val (user, pass) = dbUri.userInfo.split(":", limit = 2)
-                        DatabaseConfig(
-                            jdbcUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}?sslmode=disable",
-                            username = user,
-                            password = pass,
-                        )
-                    }
-                } else {
-                    logger.info("Using gcp database configuration")
-                    val serverCertPath = "/app/db-ssl-ca/server-ca.pem"
-                    val clientCertPath = "/app/db-ssl-ca/client-cert.pem"
-                    val clientKeyPath = "/app/db-ssl-ca/client-key.pk8"
+            val platform = System.getenv("platform")
+            return if (env == "production" && platform != "flyio") {
+                logger.info("Using gcp database configuration")
 
-                    DatabaseConfig(
-                        jdbcUrl = "jdbc:postgresql://${
-                            System.getenv(
-                                "DATABASE_HOST",
-                            )
-                        }:5432/frisk-backend-db?sslmode=require&sslrootcert=$serverCertPath$&sslcert=$clientCertPath&sslkey=$clientKeyPath",
-                        username = "admin",
-                        password = System.getenv("DATABASE_PASSWORD") ?: ""
+                val skipJdbcUrl = "jdbc:postgresql://${
+                    System.getenv(
+                        "DATABASE_HOST",
                     )
-                }
+                }:5432/frisk-backend-db?sslmode=require&sslrootcert=/app/db-ssl-ca/server-ca.pem$&sslcert=/app/db-ssl-ca/client-cert.pem&sslkey=/app/db-ssl-ca/client-key.pk8"
+                DatabaseConfig(
+                    jdbcUrl = skipJdbcUrl,
+                    username = "admin",
+                    password = System.getenv("DATABASE_PASSWORD") ?: ""
+                )
             } else {
                 logger.info("Using local development database configuration")
-                val jdbcUrl = "jdbc:postgresql://localhost:5432/frisk-backend-db"
-                val username = "postgres"
-                val password = ""
 
                 DatabaseConfig(
-                    jdbcUrl = jdbcUrl,
-                    username = username,
-                    password = password
+                    jdbcUrl = getConfigFromEnvOrThrow("JDBC_URL"),
+                    username = getConfigFromEnvOrThrow("DATABASE_USERNAME"),
+                    password = getConfigFromEnvOrThrow("DATABASE_PASSWORD")
                 )
             }
         }
     }
 }
+
+fun getConfigFromEnvOrThrow(variableName: String): String =
+    System.getenv(variableName)
+        ?: throw IllegalStateException("Unable to initialize app config, \"$variableName\" is null")
