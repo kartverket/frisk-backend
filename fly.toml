@@ -36,4 +36,4 @@ hard_limit = 100
 soft_limit = 100
 
 [env]
-ALLOWED_CORS_HOSTS = "frisk-frontend.fly.dev"
+ALLOWED_CORS_HOSTS = "frisk-frontend.fly.dev,localhost:5173"
