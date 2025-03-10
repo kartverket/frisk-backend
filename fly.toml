@@ -39,3 +39,4 @@ soft_limit = 100
 ALLOWED_CORS_HOSTS = "frisk-frontend.fly.dev,localhost:5173"
 # Settes inne på fly
 # DATABASE_PASSWORD =
+SCOPES = "https://graph.microsoft.com/.default"

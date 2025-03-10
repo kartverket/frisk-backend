@@ -6,7 +6,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.microsoftRoutes() {
+fun Route.microsoftRoutes(microsoftService: MicrosoftService) {
     route("/microsoft") {
         route("/me") {
             route("/teams") {
@@ -15,7 +15,7 @@ fun Route.microsoftRoutes() {
                         call.respond(HttpStatusCode.Forbidden)
                         return@get
                     }
-                    val groups = MicrosoftService.getMemberGroups(userId)
+                    val groups = microsoftService.getMemberGroups(userId)
                     call.respond(groups)
                 }
             }
@@ -27,7 +27,7 @@ fun Route.microsoftRoutes() {
                         call.respond(HttpStatusCode.BadRequest)
                         return@get
                     }
-                    val group = MicrosoftService.getGroup(groupId)
+                    val group = microsoftService.getGroup(groupId)
                     call.respond(group)
                 }
             }

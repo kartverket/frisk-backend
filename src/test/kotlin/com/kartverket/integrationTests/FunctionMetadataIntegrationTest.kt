@@ -1,6 +1,7 @@
 package com.kartverket.integrationTests
 
 import com.kartverket.JDBCDatabase
+import com.kartverket.MockMicrosoftService
 import com.kartverket.TestDatabase
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
@@ -30,9 +31,14 @@ class FunctionMetadataIntegrationTest {
     @Test
     fun `Create, read, update and delete function metadata`() = testApplication {
         val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
-        val functionMetadataService = FunctionMetadataServiceImpl(database)
+        val microsoftService = object : MockMicrosoftService {}
+        val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
         application {
-            testModule(database, authService = AuthServiceImpl(functionMetadataService), functionMetadataService = functionMetadataService)
+            testModule(
+                database,
+                authService = AuthServiceImpl(functionMetadataService, microsoftService),
+                functionMetadataService = functionMetadataService
+            )
         }
 
         val functionName = "${UUID.randomUUID()}"

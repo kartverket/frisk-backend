@@ -1,6 +1,7 @@
 package com.kartverket.microsoft
 
 import com.azure.identity.ClientSecretCredentialBuilder
+import com.kartverket.configuration.EntraConfig
 import com.microsoft.graph.models.Group
 import com.microsoft.graph.serviceclient.GraphServiceClient
 import kotlinx.serialization.Serializable
@@ -11,16 +12,15 @@ data class TeamDTO(
     val displayName: String,
 )
 
-object MicrosoftService {
-    private val tenantId = System.getenv("tenantId")
-    private val clientId = System.getenv("clientId")
-    private val clientSecret = System.getenv("CLIENT_SECRET")
+interface MicrosoftService {
+    fun getMemberGroups(userId: String): List<TeamDTO>
+    fun getGroup(groupId: String): TeamDTO
+}
 
-    private val scopes = "https://graph.microsoft.com/.default"
-    private val credential = ClientSecretCredentialBuilder().clientId(clientId).tenantId(tenantId).clientSecret(clientSecret).build()
-    private val graphClient = GraphServiceClient(credential, scopes)
-
-    fun getMemberGroups(userId: String): List<TeamDTO> {
+class MicrosoftServiceImpl(
+    private val graphClient: GraphServiceClient
+) : MicrosoftService {
+    override fun getMemberGroups(userId: String): List<TeamDTO> {
         val groups = graphClient.users().byUserId(userId).memberOf().graphGroup().get().value
 
         return groups.map {
@@ -28,8 +28,22 @@ object MicrosoftService {
         }
     }
 
-    fun getGroup(groupId: String): TeamDTO {
+    override fun getGroup(groupId: String): TeamDTO {
         return graphClient.groups().byGroupId(groupId).get().toTeamDTO()
+    }
+
+    companion object {
+        fun load(config: EntraConfig): MicrosoftService {
+            val scopes = "https://graph.microsoft.com/.default"
+            val credential = ClientSecretCredentialBuilder()
+                .clientId(config.clientId)
+                .tenantId(config.tenantId)
+                .clientSecret(config.clientSecret)
+                .build()
+            val graphClient = GraphServiceClient(credential, scopes)
+
+            return MicrosoftServiceImpl(graphClient)
+        }
     }
 
 }

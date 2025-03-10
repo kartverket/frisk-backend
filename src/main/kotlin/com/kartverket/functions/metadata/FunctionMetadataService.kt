@@ -24,7 +24,8 @@ interface FunctionMetadataService {
 }
 
 class FunctionMetadataServiceImpl(
-    private val database: Database
+    private val database: Database,
+    private val microsoftService: MicrosoftService,
 ) : FunctionMetadataService {
 
     override fun getFunctionMetadataById(id: Int): FunctionMetadata? {
@@ -215,7 +216,7 @@ class FunctionMetadataServiceImpl(
         return when (key) {
             SpecialMetadataKey.TEAM.key -> {
                 try {
-                    val group = MicrosoftService.getGroup(value)
+                    val group = microsoftService.getGroup(value)
                     group.id == value
                 } catch (error: ODataError) {
                     false

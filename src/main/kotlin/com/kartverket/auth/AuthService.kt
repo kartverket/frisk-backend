@@ -12,6 +12,7 @@ interface AuthService {
 
 class AuthServiceImpl(
     private val functionMetadataService: FunctionMetadataService,
+    private val microsoftService: MicrosoftService
 ) : AuthService {
     private fun hasMetadataAccess(userId: String, metadataId: Int): Boolean {
         val metadata = functionMetadataService.getFunctionMetadataById(metadataId) ?: run {
@@ -46,7 +47,7 @@ class AuthServiceImpl(
     }
 
     private fun hasTeamAccess(userId: String, teamId: String): Boolean {
-        val userTeams = MicrosoftService.getMemberGroups(userId)
+        val userTeams = microsoftService.getMemberGroups(userId)
         return userTeams.any { it.id == teamId }
     }
 
