@@ -12,6 +12,7 @@ import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.auth.AUTH_JWT
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.plugins.configureRouting
 import com.kartverket.plugins.configureSerialization
 import io.ktor.client.*
@@ -30,8 +31,12 @@ object TestUtils {
     fun Application.testModule(
         testDatabase: Database = object : MockDatabase {},
         authService: AuthService = object : MockAuthService {},
+        microsoftService: MicrosoftService = object : MockMicrosoftService {},
         functionService: FunctionService = FunctionServiceImpl(testDatabase),
-        functionMetadataService: FunctionMetadataService = FunctionMetadataServiceImpl(testDatabase),
+        functionMetadataService: FunctionMetadataService = FunctionMetadataServiceImpl(
+            testDatabase,
+            microsoftService
+        ),
     ) {
         configureSerialization()
 
@@ -49,7 +54,7 @@ object TestUtils {
             }
         }
 
-        configureRouting(testDatabase, authService, functionService, functionMetadataService)
+        configureRouting(testDatabase, authService, functionService, functionMetadataService, microsoftService)
     }
 
     fun generateTestToken(): String {

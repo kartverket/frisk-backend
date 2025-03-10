@@ -8,6 +8,7 @@ import com.kartverket.functions.FunctionService
 import com.kartverket.functions.functionRoutes
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.functionMetadataRoutes
+import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.microsoft.microsoftRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,14 +21,15 @@ fun Application.configureRouting(
     database: Database,
     authService: AuthService,
     functionService: FunctionService,
-    functionMetadataService: FunctionMetadataService
+    functionMetadataService: FunctionMetadataService,
+    microsoftService: MicrosoftService
 ) {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
             functionRoutes(authService, functionService, functionMetadataService)
             functionMetadataRoutes(authService, functionMetadataService)
-            microsoftRoutes()
+            microsoftRoutes(microsoftService)
             get("/dump") {
 //                if (!call.hasSuperUserAccess()) {
 //                    call.respond(HttpStatusCode.Forbidden)
