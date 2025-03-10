@@ -2,10 +2,11 @@ package com.kartverket
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.kartverket.functions.CreateFunctionDto
-import com.kartverket.functions.CreateFunctionWithMetadataDto
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
 import com.kartverket.functions.FunctionService
+import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.auth.AUTH_JWT
@@ -27,7 +28,8 @@ import kotlin.test.assertEquals
 object TestUtils {
     fun Application.testModule(
         testDatabase: Database = object : MockDatabase {},
-        authService: AuthService = object : MockAuthService {}
+        authService: AuthService = object : MockAuthService {},
+        functionService: FunctionService = FunctionServiceImpl(testDatabase)
     ) {
         configureSerialization()
 
@@ -44,8 +46,8 @@ object TestUtils {
                 validate { credentials -> JWTPrincipal(credentials.payload) }
             }
         }
-        configureRouting(testDatabase, authService)
-        FunctionService.database = testDatabase
+
+        configureRouting(testDatabase, authService, functionService)
         FunctionMetadataService.database = testDatabase
     }
 
