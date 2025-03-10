@@ -3,6 +3,9 @@ package com.kartverket.functions
 import com.kartverket.MockAuthService
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
+import com.kartverket.functions.dto.UpdateFunctionDto
 import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
 import io.ktor.client.request.*
@@ -13,8 +16,7 @@ import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -24,18 +26,18 @@ class FunctionRoutesTest {
     @Test
     fun `get functions`() = testApplication {
         application {
-            testModule()
+            testModule(functionService = object : MockFunctionService {
+                override fun getFunctions(search: String?): List<Function> {
+                    return emptyList()
+                }
+            })
         }
 
-        mockkObject(FunctionService) {
-
-            every { FunctionService.getFunctions(any<String>()) } returns emptyList()
-
-            val response = client.get("/functions") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-            assertEquals(HttpStatusCode.OK, response.status)
+        val response = client.get("/functions") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
+        assertEquals(HttpStatusCode.OK, response.status)
+
     }
 
     @Test
@@ -51,43 +53,43 @@ class FunctionRoutesTest {
     @Test
     fun testCreateFunctionWithMetadata() = testApplication {
         application {
-            testModule()
+            testModule(functionService = object : MockFunctionService {
+                override fun createFunction(newFunction: CreateFunctionDto): Function? {
+                    return Function(
+                        id = 0,
+                        name = newFunction.name,
+                        description = newFunction.description,
+                        parentId = 1,
+                        path = "/functions",
+                        orderIndex = 0
+                    )
+                }
+            })
         }
         mockkObject(FunctionMetadataService) {
-            mockkObject(FunctionService) {
-                val uniqueName = "${UUID.randomUUID()}"
-                val metadata = CreateFunctionMetadataDTO(key = "testKey", value = "testValue")
+            val uniqueName = "${UUID.randomUUID()}"
+            val metadata = CreateFunctionMetadataDTO(key = "testKey", value = "testValue")
 
-                val request = CreateFunctionWithMetadataDto(
-                    function = CreateFunctionDto(
-                        name = uniqueName, description = "desc", parentId = 1
-                    ), metadata = listOf(metadata)
-                )
+            val request = CreateFunctionWithMetadataDto(
+                function = CreateFunctionDto(
+                    name = uniqueName, description = "desc", parentId = 1
+                ), metadata = listOf(metadata)
+            )
 
-                every { FunctionService.createFunction(request.function) } returns Function(
-                    id = 0,
-                    name = uniqueName,
-                    description = "desc",
-                    parentId = 1,
-                    path = "/functions",
-                    orderIndex = 0
-                )
+            every { FunctionMetadataService.addMetadataToFunction(any(), any()) } returns Unit
 
-                every { FunctionMetadataService.addMetadataToFunction(any(), any()) } returns Unit
-
-                val response = client.post("/functions") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(request))
-                }
-
-                assertEquals(HttpStatusCode.OK, response.status)
-
-                val createdFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
-                assertEquals(uniqueName, createdFunction.name)
-
-                verify { FunctionMetadataService.addMetadataToFunction(createdFunction.id, metadata) }
+            val response = client.post("/functions") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+                contentType(ContentType.Application.Json)
+                setBody(Json.encodeToString(request))
             }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+
+            val createdFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
+            assertEquals(uniqueName, createdFunction.name)
+
+            verify { FunctionMetadataService.addMetadataToFunction(createdFunction.id, metadata) }
         }
     }
 
@@ -170,12 +172,7 @@ class FunctionRoutesTest {
 
     @Test
     fun testGetFunctionById() = testApplication {
-        application {
-            testModule()
-        }
-
         val functionId = 1
-
         val mockedFunction = Function(
             id = functionId,
             name = "Test Function",
@@ -184,25 +181,30 @@ class FunctionRoutesTest {
             parentId = 1,
             orderIndex = 1
         )
-        mockkObject(FunctionService) {
-            every { FunctionService.getFunction(functionId) } returns mockedFunction
 
-            val response = client.get("/functions/$functionId") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-
-            assertEquals(HttpStatusCode.OK, response.status)
-
-            val fetchedFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
-            assertEquals(functionId, fetchedFunction.id)
-            assertEquals("Test Function", fetchedFunction.name)
-            assertEquals("Test Description", fetchedFunction.description)
-            assertEquals("1.1", fetchedFunction.path)
-            assertEquals(1, fetchedFunction.parentId)
-            assertEquals(1, fetchedFunction.orderIndex)
-
-            verify { FunctionService.getFunction(functionId) }
+        application {
+            testModule(
+                functionService = object : MockFunctionService {
+                    override fun getFunction(id: Int): Function? {
+                        return mockedFunction
+                    }
+                }
+            )
         }
+
+        val response = client.get("/functions/$functionId") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val fetchedFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
+        assertEquals(functionId, fetchedFunction.id)
+        assertEquals("Test Function", fetchedFunction.name)
+        assertEquals("Test Description", fetchedFunction.description)
+        assertEquals("1.1", fetchedFunction.path)
+        assertEquals(1, fetchedFunction.parentId)
+        assertEquals(1, fetchedFunction.orderIndex)
     }
 
     @Test
@@ -219,23 +221,19 @@ class FunctionRoutesTest {
     @Test
     fun testGetFunctionByIdNotFound() = testApplication {
         application {
-            testModule()
+            testModule(functionService = object : MockFunctionService {
+                override fun getFunction(id: Int): Function? = null
+            })
         }
 
-        val functionId = 1234567913
-
-        mockkObject(FunctionService) {
-            every { FunctionService.getFunction(functionId) } returns null
-
-            val response = client.get("/functions/$functionId") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-
-            assertEquals(HttpStatusCode.NotFound, response.status)
-
-            verify { FunctionService.getFunction(functionId) }
+        val response = client.get("/functions/1234567913") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+
     }
+
 
     @Test
     fun testGetFunctionByIdBadRequest() = testApplication {
@@ -303,22 +301,24 @@ class FunctionRoutesTest {
             testModule(
                 authService = object : MockAuthService {
                     override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
+                },
+                functionService = object : MockFunctionService {
+                    override fun updateFunction(id: Int, updatedFunction: UpdateFunctionDto): Function? {
+                        return null
+                    }
                 }
             )
         }
 
         mockkObject(FunctionMetadataService) {
-            mockkObject(FunctionService) {
-                every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
-                every { FunctionService.updateFunction(any(), any()) } returns null
-                val response = client.put("/functions/1234567913") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody("""{"name": "Updated Name", "description": "Updated Description", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
-                }
-
-                assertEquals(HttpStatusCode.NotFound, response.status)
+            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
+            val response = client.put("/functions/1234567913") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+                contentType(ContentType.Application.Json)
+                setBody("""{"name": "Updated Name", "description": "Updated Description", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
             }
+
+            assertEquals(HttpStatusCode.NotFound, response.status)
         }
     }
 
@@ -366,24 +366,29 @@ class FunctionRoutesTest {
 
     @Test
     fun testDeleteFunctionSuccess() = testApplication {
+        var deletedId: Int? = null
         application {
             testModule(
                 authService = object : MockAuthService {
+
                     override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
-                }
-            )
+
+                },
+                functionService = object : MockFunctionService {
+                    override fun deleteFunction(id: Int): Boolean {
+                        deletedId = id
+                        return true
+                    }
+                })
         }
         mockkObject(FunctionMetadataService) {
-            mockkObject(FunctionService) {
-                every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
-                every { FunctionService.deleteFunction(any()) } returns true
-                val response = client.delete("/functions/1") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                }
-
-                assertEquals(HttpStatusCode.NoContent, response.status)
-                verify { FunctionService.deleteFunction(1) }
+            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
+            val response = client.delete("/functions/1") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
             }
+
+            assertEquals(HttpStatusCode.NoContent, response.status)
+            assertEquals(1, deletedId)
         }
     }
 
@@ -400,25 +405,30 @@ class FunctionRoutesTest {
 
     @Test
     fun testDeleteFunctionForbidden() = testApplication {
+        var deletedWasCalled = false
         application {
             testModule(
                 authService = object : MockAuthService {
                     override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = false
                     override fun hasSuperUserAccess(call: ApplicationCall): Boolean = false
-                }
-            )
+                },
+                functionService = object : MockFunctionService {
+
+                    override fun deleteFunction(id: Int): Boolean {
+                        deletedWasCalled = true
+                        return true
+                    }
+                })
         }
 
         val functionId = 1
-
-        mockkObject(FunctionService)
 
         val response = client.delete("/functions/$functionId") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
-        verify(exactly = 0) { FunctionService.deleteFunction(any()) }
+        assertFalse(deletedWasCalled)
     }
 
     @Test
@@ -435,28 +445,34 @@ class FunctionRoutesTest {
     }
 
 
-    /*    @Test
-        fun testGetChildrenSuccess() = testApplication {
-            application {
-                testModule()
-            }
+    @Test
+    fun testGetChildrenSuccess() = testApplication {
+        val children = listOf(
+            Function(
+                id = 2,
+                parentId = 1,
+                name = "${UUID.randomUUID()}",
+                orderIndex = 1,
+                path = "/function/children",
+                description = "bladibla"
+            )
+        )
+        application {
+            testModule(functionService = object : MockFunctionService {
+                override fun getChildren(id: Int): List<Function> {
+                    return children
+                }
+            })
+        }
 
-            val parentFunction = createFunction(client, 1)
-            val childFunction = createFunction(client, parentFunction.id)
+        val response = client.get("/functions/1234/children") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+        }
 
-            mockkObject(FunctionService)
-
-            val response = client.get("/functions/${parentFunction.id}/children") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-
-            assertEquals(HttpStatusCode.OK, response.status)
-            val childrenFunctions: List<Function> = Json.decodeFromString(response.bodyAsText())
-            assertEquals(listOf(childFunction), childrenFunctions)
-
-            verify { FunctionService.getChildren(parentFunction.id) }
-            confirmVerified(FunctionService)
-        }*/
+        assertEquals(HttpStatusCode.OK, response.status)
+        val childrenFromApi: List<Function> = Json.decodeFromString(response.bodyAsText())
+        assertEquals(children, childrenFromApi)
+    }
 
     @Test
     fun testGetChildrenInvalidId() = testApplication {
@@ -473,22 +489,24 @@ class FunctionRoutesTest {
 
     @Test
     fun testGetChildrenEmptyList() = testApplication {
+        var parentId: Int? = null
         application {
-            testModule()
+            testModule(functionService = object : MockFunctionService {
+                override fun getChildren(id: Int): List<Function> {
+                    parentId = id
+                    return emptyList()
+                }
+            })
         }
 
-        mockkObject(FunctionService) {
-            every { FunctionService.getChildren(any()) } returns emptyList()
-
-            val response = client.get("/functions/1/children") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-
-            assertEquals(HttpStatusCode.OK, response.status)
-            val childrenFunctions: List<Function> = Json.decodeFromString(response.bodyAsText())
-            assertTrue(childrenFunctions.isEmpty())
-
-            verify { FunctionService.getChildren(1) }
+        val response = client.get("/functions/1/children") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val childrenFunctions: List<Function> = Json.decodeFromString(response.bodyAsText())
+        assertTrue(childrenFunctions.isEmpty())
+
+        assertEquals(1, parentId)
     }
 }

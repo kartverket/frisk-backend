@@ -1,18 +1,17 @@
 import com.kartverket.*
-import com.kartverket.auth.AuthService
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
+import com.kartverket.configureAPILayer
+import com.kartverket.functions.FunctionServiceImpl
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
-import java.sql.Connection
 
 class ApplicationTest {
     private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
@@ -20,7 +19,8 @@ class ApplicationTest {
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
-            configureAPILayer(exampleConfig, object : MockDatabase {}, object : MockAuthService {})
+            val mockDatabase = object : MockDatabase {}
+            configureAPILayer(exampleConfig, mockDatabase, object : MockAuthService {}, FunctionServiceImpl(mockDatabase))
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -60,12 +60,14 @@ class ApplicationTest {
     @Test
     fun `Verify that CORS is enabled`() = testApplication {
         application {
+            val mockDatabase = object : MockDatabase {}
             configureAPILayer(
                 exampleConfig.copy(
                     allowedCORSHosts = listOf("test.com")
                 ),
-                object : MockDatabase {},
-                object : MockAuthService {}
+                mockDatabase,
+                object : MockAuthService {},
+                FunctionServiceImpl(mockDatabase)
             )
         }
 

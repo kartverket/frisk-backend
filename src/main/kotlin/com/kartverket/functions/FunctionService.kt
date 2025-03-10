@@ -1,7 +1,8 @@
 package com.kartverket.functions
 
 import com.kartverket.Database
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.UpdateFunctionDto
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
@@ -17,34 +18,25 @@ data class Function(
     val orderIndex: Int
 )
 
-@Serializable
-data class CreateFunctionDto(
-    val name: String,
-    val description: String? = null,
-    val parentId: Int,
-)
+interface FunctionService {
+    fun getFunctions(search: String? = null): List<Function>
+    fun getFunction(id: Int): Function?
+    fun getChildren(id: Int): List<Function>
+    fun createFunction(newFunction: CreateFunctionDto): Function?
+    fun updateFunction(
+        id: Int,
+        updatedFunction: UpdateFunctionDto,
+    ): Function?
 
-@Serializable
-data class CreateFunctionWithMetadataDto(
-    val function: CreateFunctionDto,
-    val metadata: List<CreateFunctionMetadataDTO>
-)
+    fun deleteFunction(id: Int): Boolean
+}
 
+class FunctionServiceImpl(
+    private val database: Database
+) : FunctionService {
+    private val logger = KtorSimpleLogger("FunctionService")
 
-@Serializable
-data class UpdateFunctionDto(
-    val name: String,
-    val description: String? = null,
-    val parentId: Int?,
-    val path: String,
-    val orderIndex: Int,
-)
-
-object FunctionService {
-    lateinit var database: Database
-    val logger = KtorSimpleLogger("FunctionService")
-
-    fun getFunctions(search: String? = null): List<Function> {
+    override fun getFunctions(search: String?): List<Function> {
         logger.info("Getting functions with search query: $search")
         val functions = mutableListOf<Function>()
         lateinit var query: String
@@ -69,7 +61,7 @@ object FunctionService {
         return functions
     }
 
-    fun getFunction(id: Int): Function? {
+    override fun getFunction(id: Int): Function? {
         logger.info("Getting function with id: $id")
         val query = "SELECT * FROM functions where id = ?"
         logger.debug("Preparing database query: $query")
@@ -85,7 +77,7 @@ object FunctionService {
         }
     }
 
-    fun getChildren(id: Int): List<Function> {
+    override fun getChildren(id: Int): List<Function> {
         logger.info("Getting childeren with: $id")
         val functions = mutableListOf<Function>()
         val query = "SELECT * FROM functions WHERE parent_id = ? ORDER BY order_index"
@@ -102,7 +94,7 @@ object FunctionService {
         return functions
     }
 
-    fun createFunction(newFunction: CreateFunctionDto): Function? {
+    override fun createFunction(newFunction: CreateFunctionDto): Function? {
         logger.info("Creating function with: ${newFunction.name}")
         val query = "INSERT INTO functions (name, description, parent_id) VALUES (?, ?, ?) RETURNING *"
         logger.debug("Preparing database query: $query")
@@ -120,7 +112,7 @@ object FunctionService {
         }
     }
 
-    fun updateFunction(
+    override fun updateFunction(
         id: Int,
         updatedFunction: UpdateFunctionDto,
     ): Function? {
@@ -153,7 +145,7 @@ object FunctionService {
         return result
     }
 
-    fun deleteFunction(id: Int): Boolean {
+    override fun deleteFunction(id: Int): Boolean {
         logger.info("Deleting function with id: $id")
         val query = "DELETE FROM functions WHERE id = ?"
         logger.debug("Preparing database query: $query")

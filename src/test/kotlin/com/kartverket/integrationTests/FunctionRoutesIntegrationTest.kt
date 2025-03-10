@@ -5,10 +5,10 @@ import com.kartverket.TestDatabase
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
 import com.kartverket.auth.AuthServiceImpl
-import com.kartverket.functions.CreateFunctionDto
-import com.kartverket.functions.CreateFunctionWithMetadataDto
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
-import com.kartverket.functions.UpdateFunctionDto
+import com.kartverket.functions.dto.UpdateFunctionDto
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
