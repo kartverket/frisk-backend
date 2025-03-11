@@ -1,5 +1,9 @@
 package com.kartverket
 
+import com.kartverket.auth.AuthService
+import com.kartverket.auth.AuthServiceImpl
+import com.kartverket.auth.configureAuth
+import com.kartverket.auth.logger
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.functions.Function
@@ -64,7 +68,8 @@ fun Application.module() {
     val database = JDBCDatabase.create(config.databaseConfig)
     FunctionService.database = database
     FunctionMetadataService.database = database
-    configureAPILayer(config, database)
+    val authService = AuthServiceImpl()
+    configureAPILayer(config, database, authService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
@@ -72,9 +77,9 @@ fun Application.module() {
     }
 }
 
-fun Application.configureAPILayer(config: AppConfig, database: Database) {
+fun Application.configureAPILayer(config: AppConfig, database: Database, authService: AuthService) {
     configureSerialization()
     configureCors(config)
     configureAuth()
-    configureRouting(database)
+    configureRouting(database, authService)
 }

@@ -1,11 +1,11 @@
-import com.kartverket.DumpRow
-import com.kartverket.Database
+import com.kartverket.*
+import com.kartverket.auth.AuthService
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
-import com.kartverket.configureAPILayer
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,21 +16,11 @@ import java.sql.Connection
 
 class ApplicationTest {
     private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
-    private val mockDatabase = object : Database {
-        override fun getDump(): List<DumpRow> {
-            TODO("Not yet implemented")
-        }
-
-        override fun getConnection(): Connection {
-            TODO("Not yet implemented")
-        }
-
-    }
 
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
-            configureAPILayer(exampleConfig, mockDatabase)
+            configureAPILayer(exampleConfig, object : MockDatabase {}, object : MockAuthService {})
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -74,7 +64,8 @@ class ApplicationTest {
                 exampleConfig.copy(
                     allowedCORSHosts = listOf("test.com")
                 ),
-                mockDatabase
+                object : MockDatabase {},
+                object : MockAuthService {}
             )
         }
 

@@ -1,6 +1,6 @@
 package com.kartverket.microsoft
 
-import com.kartverket.plugins.getUserId
+import com.kartverket.auth.getUserId
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

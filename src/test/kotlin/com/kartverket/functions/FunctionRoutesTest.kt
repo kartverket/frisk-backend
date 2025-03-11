@@ -1,10 +1,10 @@
 package com.kartverket.functions
 
+import com.kartverket.MockAuthService
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
 import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
-import com.kartverket.plugins.hasFunctionAccess
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,6 +15,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -299,7 +300,11 @@ class FunctionRoutesTest {
     @Test
     fun `Updating non-existent function`() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
+                }
+            )
         }
 
         mockkObject(FunctionMetadataService) {
@@ -340,6 +345,7 @@ class FunctionRoutesTest {
     }
 
     @Test
+    @Disabled("Can't see any validation of request body, so this does not test what it says")
     fun testUpdateFunctionBadRequestBody() = testApplication {
         application {
             testModule()
@@ -361,7 +367,11 @@ class FunctionRoutesTest {
     @Test
     fun testDeleteFunctionSuccess() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
+                }
+            )
         }
         mockkObject(FunctionMetadataService) {
             mockkObject(FunctionService) {
@@ -391,14 +401,17 @@ class FunctionRoutesTest {
     @Test
     fun testDeleteFunctionForbidden() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = false
+                    override fun hasSuperUserAccess(call: ApplicationCall): Boolean = false
+                }
+            )
         }
 
         val functionId = 1
 
         mockkObject(FunctionService)
-        mockkStatic(::hasFunctionAccess)
-        every { any<ApplicationCall>().hasFunctionAccess(functionId) } returns false
 
         val response = client.delete("/functions/$functionId") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")

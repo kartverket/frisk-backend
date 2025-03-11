@@ -4,6 +4,7 @@ import com.kartverket.JDBCDatabase
 import com.kartverket.TestDatabase
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
+import com.kartverket.auth.AuthServiceImpl
 import com.kartverket.functions.CreateFunctionDto
 import com.kartverket.functions.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
@@ -26,7 +27,7 @@ class FunctionRoutesIntegrationTest {
     fun `Create, read, update and delete function`() = testApplication {
         val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
         application {
-            testModule(database)
+            testModule(database, authService = AuthServiceImpl())
         }
 
         val functionName = "${UUID.randomUUID()}"

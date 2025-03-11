@@ -1,8 +1,6 @@
 package com.kartverket.functions.metadata
 
-import com.kartverket.plugins.hasFunctionAccess
-import com.kartverket.plugins.hasMetadataAccess
-import com.kartverket.plugins.hasSuperUserAccess
+import com.kartverket.auth.AuthService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -14,8 +12,9 @@ import io.ktor.util.logging.*
 val logger = KtorSimpleLogger("FunctionRoutes")
 
 
-
-fun Route.functionMetadataRoutes() {
+fun Route.functionMetadataRoutes(
+    authService: AuthService
+) {
     route("/functions") {
         route("/{id}") {
             route("/metadata") {
@@ -37,7 +36,7 @@ fun Route.functionMetadataRoutes() {
                         return@post
                     }
 
-                    if (!call.hasFunctionAccess(id)) {
+                    if (!authService.hasFunctionAccess(call, id)) {
                         logger.warn("Forbidden access attempt: post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.Forbidden)
                         return@post
@@ -53,7 +52,7 @@ fun Route.functionMetadataRoutes() {
                         return@get
                     }
 
-                    val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                    val hasAccess = authService.hasFunctionAccess(call, id) || authService.hasSuperUserAccess(call)
                     call.respond(hasAccess)
                 }
             }
@@ -73,7 +72,7 @@ fun Route.functionMetadataRoutes() {
                 logger.warn("Bad request: Invalid or missing 'functionId' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
             }
-            val key = call.request.queryParameters["key"] ?: run{
+            val key = call.request.queryParameters["key"] ?: run {
                 logger.warn("Bad request: Invalid or missing 'key' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
             }
@@ -101,7 +100,7 @@ fun Route.functionMetadataRoutes() {
                 }
                 val updatedMetadata = call.receive<UpdateFunctionMetadataDTO>()
 
-                if (!call.hasMetadataAccess(id)) {
+                if (!authService.hasMetadataAccess(call, id)) {
                     logger.warn("Forbidden access attempt: patch request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@patch
@@ -118,7 +117,7 @@ fun Route.functionMetadataRoutes() {
                     return@delete
                 }
 
-                if (!call.hasMetadataAccess(id)) {
+                if (!authService.hasMetadataAccess(call, id)) {
                     logger.warn("Forbidden access attempt: delete request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
