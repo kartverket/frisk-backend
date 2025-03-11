@@ -6,6 +6,7 @@ import com.kartverket.auth.AUTH_JWT
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.FunctionService
 import com.kartverket.functions.functionRoutes
+import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.functionMetadataRoutes
 import com.kartverket.microsoft.microsoftRoutes
 import io.ktor.http.*
@@ -15,12 +16,17 @@ import io.ktor.server.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 
-fun Application.configureRouting(database: Database, authService: AuthService, functionService: FunctionService) {
+fun Application.configureRouting(
+    database: Database,
+    authService: AuthService,
+    functionService: FunctionService,
+    functionMetadataService: FunctionMetadataService
+) {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
-            functionRoutes(authService, functionService)
-            functionMetadataRoutes(authService)
+            functionRoutes(authService, functionService, functionMetadataService)
+            functionMetadataRoutes(authService, functionMetadataService)
             microsoftRoutes()
             get("/dump") {
 //                if (!call.hasSuperUserAccess()) {

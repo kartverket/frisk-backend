@@ -16,6 +16,7 @@ val logger = KtorSimpleLogger("FunctionRoutes")
 fun Route.functionRoutes(
     authService: AuthService,
     functionService: FunctionService,
+    functionMetadataService: FunctionMetadataService
 ) {
     route("/functions") {
         get {
@@ -40,7 +41,7 @@ fun Route.functionRoutes(
             }
             if (newFunction.metadata.isNotEmpty()) {
                 newFunction.metadata.forEach { m ->
-                    FunctionMetadataService.addMetadataToFunction(function.id, m)
+                    functionMetadataService.addMetadataToFunction(function.id, m)
                 }
             }
             call.respond(function)

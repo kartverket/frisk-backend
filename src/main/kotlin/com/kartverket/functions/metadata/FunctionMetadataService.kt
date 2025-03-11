@@ -2,38 +2,32 @@ package com.kartverket.functions.metadata
 
 import com.kartverket.Database
 import com.kartverket.functions.Function
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.FunctionMetadata
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
 import com.kartverket.microsoft.MicrosoftService
 import com.microsoft.graph.models.odataerrors.ODataError
-import kotlinx.serialization.Serializable
 import java.sql.ResultSet
-
-@Serializable
-data class FunctionMetadata(
-    val id: Int,
-    val functionId: Int,
-    val key: String,
-    val value: String,
-)
-
-@Serializable
-data class CreateFunctionMetadataDTO(
-    val key: String,
-    val value: String,
-)
-
-@Serializable
-data class UpdateFunctionMetadataDTO(
-    val value: String,
-)
 
 enum class SpecialMetadataKey(val key: String) {
     TEAM("team")
 }
 
-object FunctionMetadataService {
-    lateinit var database: Database
+interface FunctionMetadataService {
+    fun getFunctionMetadataById(id: Int): FunctionMetadata?
+    fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata>
+    fun getFunctionMetadataKeys(search: String? = null): List<String>
+    fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO)
+    fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO)
+    fun deleteMetadata(id: Int)
+    fun getIndicators(key: String, value: String?, functionId: Int): List<Function>
+}
 
-    fun getFunctionMetadataById(id: Int): FunctionMetadata? {
+class FunctionMetadataServiceImpl(
+    private val database: Database
+) : FunctionMetadataService {
+
+    override fun getFunctionMetadataById(id: Int): FunctionMetadata? {
         val query = """
             SELECT fm.id, fm.function_id, fmk.key, fm.value 
             FROM function_metadata fm 
@@ -58,7 +52,7 @@ object FunctionMetadataService {
         return null
     }
 
-    fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
+    override fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
         require(!(functionId == null && key == null)) { "functionId and key cannot both be null" }
 
         val metadata = mutableListOf<FunctionMetadata>()
@@ -107,7 +101,7 @@ object FunctionMetadataService {
     }
 
 
-    fun getFunctionMetadataKeys(search: String? = null): List<String> {
+    override fun getFunctionMetadataKeys(search: String?): List<String> {
         val keys = mutableListOf<String>()
         val query = if (search != null) {
             "SELECT key FROM function_metadata_keys WHERE LOWER(key) LIKE ?"
@@ -130,7 +124,7 @@ object FunctionMetadataService {
         return keys
     }
 
-    fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
+    override fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
         require(isValueValidForKey(newMetadata.key, newMetadata.value)) {
             "The value ${newMetadata.value} is not a valid for key ${newMetadata.key}"
         }
@@ -156,7 +150,7 @@ object FunctionMetadataService {
         }
     }
 
-    fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
+    override fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
         val query = "UPDATE function_metadata SET value = ? WHERE id = ?"
         database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
@@ -167,7 +161,7 @@ object FunctionMetadataService {
         }
     }
 
-    fun deleteMetadata(id: Int) {
+    override fun deleteMetadata(id: Int) {
         val query = "DELETE FROM function_metadata WHERE id = ?"
         database.getConnection().use { connection ->
             connection.prepareStatement(query).use { statement ->
@@ -177,7 +171,7 @@ object FunctionMetadataService {
         }
     }
 
-    fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
+    override fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
         var query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
                 "SELECT * FROM functions AS f " +
                 "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +

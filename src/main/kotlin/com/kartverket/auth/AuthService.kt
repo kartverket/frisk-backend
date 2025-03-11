@@ -10,9 +10,11 @@ interface AuthService {
     fun hasSuperUserAccess(call: ApplicationCall): Boolean
 }
 
-class AuthServiceImpl : AuthService {
+class AuthServiceImpl(
+    private val functionMetadataService: FunctionMetadataService,
+) : AuthService {
     private fun hasMetadataAccess(userId: String, metadataId: Int): Boolean {
-        val metadata = FunctionMetadataService.getFunctionMetadataById(metadataId) ?: run {
+        val metadata = functionMetadataService.getFunctionMetadataById(metadataId) ?: run {
             return false
         }
         return hasFunctionAccess(userId, metadata.functionId)
@@ -22,14 +24,14 @@ class AuthServiceImpl : AuthService {
         val userId = call.getUserId() ?: run {
             return false
         }
-        val metadata = FunctionMetadataService.getFunctionMetadataById(metadataId) ?: run {
+        val metadata = functionMetadataService.getFunctionMetadataById(metadataId) ?: run {
             return false
         }
         return hasMetadataAccess(userId, metadata.id)
     }
 
     private fun hasFunctionAccess(userId: String, functionId: Int): Boolean {
-        val functionTeams = FunctionMetadataService.getFunctionMetadata(functionId, "team", null)
+        val functionTeams = functionMetadataService.getFunctionMetadata(functionId, "team", null)
 
         return if (functionTeams.isEmpty()) {
             true

@@ -1,6 +1,8 @@
 package com.kartverket.functions.metadata
 
 import com.kartverket.auth.AuthService
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -13,7 +15,8 @@ val logger = KtorSimpleLogger("FunctionRoutes")
 
 
 fun Route.functionMetadataRoutes(
-    authService: AuthService
+    authService: AuthService,
+    functionMetadataService: FunctionMetadataService,
 ) {
     route("/functions") {
         route("/{id}") {
@@ -25,7 +28,7 @@ fun Route.functionMetadataRoutes(
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@get
                     }
-                    val metadata = FunctionMetadataService.getFunctionMetadata(id, null, null)
+                    val metadata = functionMetadataService.getFunctionMetadata(id, null, null)
                     call.respond(metadata)
                 }
                 post {
@@ -43,7 +46,7 @@ fun Route.functionMetadataRoutes(
                     }
 
                     val metadata = call.receive<CreateFunctionMetadataDTO>()
-                    FunctionMetadataService.addMetadataToFunction(id, metadata)
+                    functionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
                 }
                 get("/access") {
@@ -64,7 +67,7 @@ fun Route.functionMetadataRoutes(
             val value = call.request.queryParameters["value"]
             val functionId = call.request.queryParameters["functionId"]?.toInt()
 
-            val metadata = FunctionMetadataService.getFunctionMetadata(functionId, key, value)
+            val metadata = functionMetadataService.getFunctionMetadata(functionId, key, value)
             call.respond(metadata)
         }
         get("indicator") {
@@ -78,13 +81,13 @@ fun Route.functionMetadataRoutes(
             }
             val value = call.request.queryParameters["value"]
 
-            val functions = FunctionMetadataService.getIndicators(key, value, functionId)
+            val functions = functionMetadataService.getIndicators(key, value, functionId)
             call.respond(functions)
         }
         route("/keys") {
             get {
                 val search = call.request.queryParameters["search"]
-                call.respond(FunctionMetadataService.getFunctionMetadataKeys(search))
+                call.respond(functionMetadataService.getFunctionMetadataKeys(search))
             }
         }
         route("/{id}") {
@@ -106,7 +109,7 @@ fun Route.functionMetadataRoutes(
                     return@patch
                 }
 
-                FunctionMetadataService.updateMetadataValue(id, updatedMetadata)
+                functionMetadataService.updateMetadataValue(id, updatedMetadata)
                 call.respond(HttpStatusCode.NoContent)
             }
             delete {
@@ -123,7 +126,7 @@ fun Route.functionMetadataRoutes(
                     return@delete
                 }
 
-                FunctionMetadataService.deleteMetadata(id)
+                functionMetadataService.deleteMetadata(id)
                 call.respond(HttpStatusCode.NoContent)
             }
             route("/function") {
