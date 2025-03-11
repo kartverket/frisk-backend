@@ -2,6 +2,9 @@ package com.kartverket
 
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
+import com.kartverket.functions.Function
+import com.kartverket.functions.FunctionService
+import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.plugins.*
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
@@ -59,6 +62,8 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int, database: Database) {
 fun Application.module() {
     val config = AppConfig.load(environment.config)
     val database = JDBCDatabase.create(config.databaseConfig)
+    FunctionService.database = database
+    FunctionMetadataService.database = database
     configureAPILayer(config, database)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
