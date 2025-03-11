@@ -1,6 +1,6 @@
 package com.kartverket.functions.dto
 
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
 import kotlinx.serialization.Serializable
 
 @Serializable
