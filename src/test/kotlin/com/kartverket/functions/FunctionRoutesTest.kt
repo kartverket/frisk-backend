@@ -3,12 +3,12 @@ package com.kartverket.functions
 import com.kartverket.MockAuthService
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
+import com.kartverket.auth.UserId
 import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlinx.serialization.encodeToString
@@ -302,7 +302,7 @@ class FunctionRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
+                    override fun hasFunctionAccess(userId: UserId, functionId: Int): Boolean = true
                 }
             )
         }
@@ -369,7 +369,7 @@ class FunctionRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = true
+                    override fun hasFunctionAccess(userId: UserId, functionId: Int): Boolean = true
                 }
             )
         }
@@ -403,8 +403,8 @@ class FunctionRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = false
-                    override fun hasSuperUserAccess(call: ApplicationCall): Boolean = false
+                    override fun hasFunctionAccess(userId: UserId, functionId: Int): Boolean = false
+                    override fun hasSuperUserAccess(userId: UserId): Boolean = false
                 }
             )
         }

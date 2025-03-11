@@ -5,7 +5,8 @@ import io.ktor.server.config.*
 data class AppConfig(
     val functionHistoryCleanup: FunctionHistoryCleanupConfig,
     val allowedCORSHosts: List<String>,
-    val databaseConfig: DatabaseConfig
+    val databaseConfig: DatabaseConfig,
+    val authConfig: AuthConfig
 ) {
     companion object {
         fun load(config: ApplicationConfig): AppConfig {
@@ -21,7 +22,31 @@ data class AppConfig(
                         ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.deleteOlderThanDays\""),
                 ),
                 allowedCORSHosts = allowedCORSHosts,
-                databaseConfig = DatabaseConfig.load()
+                databaseConfig = DatabaseConfig.load(),
+                authConfig = AuthConfig.load()
+            )
+        }
+    }
+
+}
+
+data class AuthConfig(
+    val superUserGroupId: String?,
+    val tenantId: String,
+    val clientId: String,
+    val jwksUri: String,
+    val issuer: String,
+) {
+    companion object {
+        fun load(): AuthConfig {
+            val tenantId = System.getenv("tenantId")
+            val clientId = System.getenv("clientId")
+            return AuthConfig(
+                superUserGroupId = System.getenv("SUPER_USER_GROUP_ID"),
+                tenantId = tenantId,
+                clientId = clientId,
+                jwksUri = "https://login.microsoftonline.com/$tenantId/discovery/v2.0/keys",
+                issuer = "https://login.microsoftonline.com/$tenantId/v2.0"
             )
         }
     }

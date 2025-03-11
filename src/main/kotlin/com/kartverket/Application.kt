@@ -68,7 +68,7 @@ fun Application.module() {
     val database = JDBCDatabase.create(config.databaseConfig)
     FunctionService.database = database
     FunctionMetadataService.database = database
-    val authService = AuthServiceImpl()
+    val authService = AuthServiceImpl(config.authConfig.superUserGroupId)
     configureAPILayer(config, database, authService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
@@ -80,6 +80,6 @@ fun Application.module() {
 fun Application.configureAPILayer(config: AppConfig, database: Database, authService: AuthService) {
     configureSerialization()
     configureCors(config)
-    configureAuth()
+    configureAuth(config.authConfig)
     configureRouting(database, authService)
 }
