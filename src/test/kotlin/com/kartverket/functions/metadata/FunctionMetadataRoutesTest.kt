@@ -6,6 +6,7 @@ import com.kartverket.TestUtils.testModule
 import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.dto.FunctionMetadata
 import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
+import com.kartverket.auth.UserId
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -111,7 +112,7 @@ class FunctionMetadataRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = false
+                    override fun hasFunctionAccess(userId: UserId, functionId: Int): Boolean = false
                 }
             )
         }
@@ -191,7 +192,7 @@ class FunctionMetadataRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasMetadataAccess(call: ApplicationCall, metadataId: Int) = false
+                    override fun hasMetadataAccess(userId: UserId, metadataId: Int): Boolean = false
                 }
             )
         }
@@ -233,7 +234,7 @@ class FunctionMetadataRoutesTest {
         application {
             testModule(
                 authService = object : MockAuthService {
-                    override fun hasMetadataAccess(call: ApplicationCall, metadataId: Int): Boolean = false
+                    override fun hasMetadataAccess(userId: UserId, functionId: Int): Boolean = false
                 }
             )
         }

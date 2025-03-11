@@ -15,7 +15,7 @@ fun Route.microsoftRoutes(microsoftService: MicrosoftService) {
                         call.respond(HttpStatusCode.Forbidden)
                         return@get
                     }
-                    val groups = microsoftService.getMemberGroups(userId)
+                    val groups = microsoftService.getMemberGroups(userId.value)
                     call.respond(groups)
                 }
             }

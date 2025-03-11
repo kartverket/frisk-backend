@@ -3,6 +3,7 @@ package com.kartverket.functions
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.dto.UpdateFunctionDto
+import com.kartverket.auth.getUserId
 import com.kartverket.functions.metadata.FunctionMetadataService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -69,7 +70,7 @@ fun Route.functionRoutes(
                     return@put
                 }
 
-                if (!authService.hasFunctionAccess(call, id) && !authService.hasSuperUserAccess(call)) {
+                if (!authService.hasFunctionAccess(call.getUserId()!!, id) && !authService.hasSuperUserAccess(call.getUserId()!!)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@put
@@ -91,7 +92,7 @@ fun Route.functionRoutes(
                     return@delete
                 }
 
-                if (!authService.hasFunctionAccess(call, id) && !authService.hasSuperUserAccess(call)) {
+                if (!authService.hasFunctionAccess(call.getUserId()!!, id) && !authService.hasSuperUserAccess(call.getUserId()!!)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
@@ -118,7 +119,7 @@ fun Route.functionRoutes(
                     return@get
                 }
 
-                val hasAccess = authService.hasFunctionAccess(call, id) || authService.hasSuperUserAccess(call)
+                val hasAccess = authService.hasFunctionAccess(call.getUserId()!!, id) || authService.hasSuperUserAccess(call.getUserId()!!)
                 call.respond(hasAccess)
             }
         }

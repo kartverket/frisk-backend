@@ -36,7 +36,7 @@ class FunctionMetadataIntegrationTest {
         application {
             testModule(
                 database,
-                authService = AuthServiceImpl(functionMetadataService, microsoftService),
+                authService = AuthServiceImpl("", functionMetadataService, microsoftService),
                 functionMetadataService = functionMetadataService
             )
         }

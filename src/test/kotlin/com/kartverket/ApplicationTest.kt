@@ -1,13 +1,11 @@
 import com.kartverket.*
 import com.kartverket.configuration.AppConfig
+import com.kartverket.configuration.AuthConfig
 import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.EntraConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
-import com.kartverket.microsoft.MicrosoftService
-import com.kartverket.microsoft.MicrosoftServiceImpl
-import com.kartverket.microsoft.TeamDTO
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
@@ -22,7 +20,8 @@ class ApplicationTest {
         FunctionHistoryCleanupConfig(1, 1),
         emptyList(),
         DatabaseConfig("", "", ""),
-        EntraConfig("", "", "")
+        EntraConfig("", "", ""),
+        AuthConfig("", "", "", "http://localhost/", "")
     )
 
     @Test

@@ -75,7 +75,7 @@ fun Application.module() {
     val microsoftService = MicrosoftServiceImpl.load(config.entraConfig)
     val functionService = FunctionServiceImpl(database)
     val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
-    val authService = AuthServiceImpl(functionMetadataService, microsoftService)
+    val authService = AuthServiceImpl(config.authConfig.superUserGroupId, functionMetadataService, microsoftService)
     configureAPILayer(config, database, authService, functionService, functionMetadataService, microsoftService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
@@ -94,6 +94,6 @@ fun Application.configureAPILayer(
 ) {
     configureSerialization()
     configureCors(config)
-    configureAuth()
+    configureAuth(config.authConfig)
     configureRouting(database, authService, functionService, functionMetadataService, microsoftService)
 }

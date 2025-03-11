@@ -3,6 +3,7 @@ package com.kartverket.functions.metadata
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
+import com.kartverket.auth.getUserId
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -39,7 +40,7 @@ fun Route.functionMetadataRoutes(
                         return@post
                     }
 
-                    if (!authService.hasFunctionAccess(call, id)) {
+                    if (!authService.hasFunctionAccess(call.getUserId()!!, id)) {
                         logger.warn("Forbidden access attempt: post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.Forbidden)
                         return@post
@@ -55,7 +56,7 @@ fun Route.functionMetadataRoutes(
                         return@get
                     }
 
-                    val hasAccess = authService.hasFunctionAccess(call, id) || authService.hasSuperUserAccess(call)
+                    val hasAccess = authService.hasFunctionAccess(call.getUserId()!!, id) || authService.hasSuperUserAccess(call.getUserId()!!)
                     call.respond(hasAccess)
                 }
             }
@@ -103,7 +104,7 @@ fun Route.functionMetadataRoutes(
                 }
                 val updatedMetadata = call.receive<UpdateFunctionMetadataDTO>()
 
-                if (!authService.hasMetadataAccess(call, id)) {
+                if (!authService.hasMetadataAccess(call.getUserId()!!, id)) {
                     logger.warn("Forbidden access attempt: patch request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@patch
@@ -120,7 +121,7 @@ fun Route.functionMetadataRoutes(
                     return@delete
                 }
 
-                if (!authService.hasMetadataAccess(call, id)) {
+                if (!authService.hasMetadataAccess(call.getUserId()!!, id)) {
                     logger.warn("Forbidden access attempt: delete request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
