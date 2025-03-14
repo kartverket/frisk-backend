@@ -3,6 +3,7 @@ package com.kartverket.functions
 import com.kartverket.Database
 import com.kartverket.functions.dto.CreateFunctionDto
 import com.kartverket.functions.dto.UpdateFunctionDto
+import com.kartverket.useStatement
 import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import java.sql.ResultSet
@@ -38,77 +39,68 @@ class FunctionServiceImpl(
 
     override fun getFunctions(search: String?): List<Function> {
         logger.info("Getting functions with search query: $search")
-        val functions = mutableListOf<Function>()
-        lateinit var query: String
-        if (search != null) {
-            query = "SELECT * FROM functions WHERE LOWER(name) LIKE ?"
+        val query: String = if (search != null) {
+            "SELECT * FROM functions WHERE LOWER(name) LIKE ?"
         } else {
-            query = "SELECT * FROM functions"
+            "SELECT * FROM functions"
         }
 
-        database.getConnection().use { connection ->
-            logger.debug("Preparing database query: $query")
-            connection.prepareStatement(query).use { statement ->
-                if (search != null) {
-                    statement.setString(1, "%${search.lowercase()}%")
-                }
-                val resultSet = statement.executeQuery()
+        logger.debug("Preparing database query: $query")
+        database.useStatement(query) { statement ->
+            if (search != null) {
+                statement.setString(1, "%${search.lowercase()}%")
+            }
+            val resultSet = statement.executeQuery()
+            return buildList {
                 while (resultSet.next()) {
-                    functions.add(resultSet.toFunction())
+                    add(resultSet.toFunction())
                 }
             }
         }
-        return functions
     }
 
     override fun getFunction(id: Int): Function? {
         logger.info("Getting function with id: $id")
         val query = "SELECT * FROM functions where id = ?"
         logger.debug("Preparing database query: $query")
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, id)
-                val resultSet = statement.executeQuery()
-                if (!resultSet.next()) {
-                    return null
-                }
-                return resultSet.toFunction()
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            val resultSet = statement.executeQuery()
+            if (!resultSet.next()) {
+                return null
             }
+            return resultSet.toFunction()
         }
     }
 
     override fun getChildren(id: Int): List<Function> {
         logger.info("Getting childeren with: $id")
-        val functions = mutableListOf<Function>()
         val query = "SELECT * FROM functions WHERE parent_id = ? ORDER BY order_index"
         logger.debug("Preparing database query: $query")
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, id)
-                val resultSet = statement.executeQuery()
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            val resultSet = statement.executeQuery()
+            return buildList {
                 while (resultSet.next()) {
-                    functions.add(resultSet.toFunction())
+                    add(resultSet.toFunction())
                 }
             }
         }
-        return functions
     }
 
     override fun createFunction(newFunction: CreateFunctionDto): Function? {
         logger.info("Creating function with: ${newFunction.name}")
         val query = "INSERT INTO functions (name, description, parent_id) VALUES (?, ?, ?) RETURNING *"
         logger.debug("Preparing database query: $query")
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setString(1, newFunction.name)
-                statement.setString(2, newFunction.description)
-                statement.setInt(3, newFunction.parentId)
-                val resultSet = statement.executeQuery()
-                if (!resultSet.next()) {
-                    return null
-                }
-                return resultSet.toFunction()
+        database.useStatement(query) { statement ->
+            statement.setString(1, newFunction.name)
+            statement.setString(2, newFunction.description)
+            statement.setInt(3, newFunction.parentId)
+            val resultSet = statement.executeQuery()
+            if (!resultSet.next()) {
+                return null
             }
+            return resultSet.toFunction()
         }
     }
 
@@ -121,25 +113,20 @@ class FunctionServiceImpl(
 
         val query = "SELECT * FROM update_function(?, ?, ?, ?, ?);"
         logger.debug("Preparing database query: $query")
-        database.getConnection().use { connection ->
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            statement.setInt(2, updatedFunction.orderIndex)
+            statement.setString(3, updatedFunction.name)
+            statement.setString(4, updatedFunction.description)
+            if (updatedFunction.parentId != null) {
+                statement.setInt(5, updatedFunction.parentId)
+            } else {
+                statement.setNull(5, Types.INTEGER)
+            }
 
-            connection.prepareStatement(query).use { statement ->
-                var i = 1
-
-                statement.setInt(i++, id)
-                statement.setInt(i++, updatedFunction.orderIndex)
-                statement.setString(i++, updatedFunction.name)
-                statement.setString(i++, updatedFunction.description)
-                if (updatedFunction.parentId != null) {
-                    statement.setInt(i, updatedFunction.parentId)
-                } else {
-                    statement.setNull(i, Types.INTEGER)
-                }
-
-                val resultSet = statement.executeQuery()
-                while (resultSet.next()) {
-                    result = resultSet.toFunction()
-                }
+            val resultSet = statement.executeQuery()
+            while (resultSet.next()) {
+                result = resultSet.toFunction()
             }
         }
         return result
@@ -149,11 +136,9 @@ class FunctionServiceImpl(
         logger.info("Deleting function with id: $id")
         val query = "DELETE FROM functions WHERE id = ?"
         logger.debug("Preparing database query: $query")
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, id)
-                return statement.executeUpdate() > 0
-            }
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            return statement.executeUpdate() > 0
         }
     }
 
