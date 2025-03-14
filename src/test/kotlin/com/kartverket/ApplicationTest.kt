@@ -1,10 +1,13 @@
 import com.kartverket.*
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.DatabaseConfig
+import com.kartverket.configuration.EntraConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
-import com.kartverket.configureAPILayer
 import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.microsoft.MicrosoftService
+import com.kartverket.microsoft.MicrosoftServiceImpl
+import com.kartverket.microsoft.TeamDTO
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
@@ -15,13 +18,25 @@ import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
 
 class ApplicationTest {
-    private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
+    private val exampleConfig = AppConfig(
+        FunctionHistoryCleanupConfig(1, 1),
+        emptyList(),
+        DatabaseConfig("", "", ""),
+        EntraConfig("", "", "")
+    )
 
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
             val mockDatabase = object : MockDatabase {}
-            configureAPILayer(exampleConfig, mockDatabase, object : MockAuthService {}, FunctionServiceImpl(mockDatabase), FunctionMetadataServiceImpl(mockDatabase))
+            configureAPILayer(
+                exampleConfig,
+                mockDatabase,
+                object : MockAuthService {},
+                FunctionServiceImpl(mockDatabase),
+                FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
+                object : MockMicrosoftService {}
+            )
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -69,7 +84,8 @@ class ApplicationTest {
                 mockDatabase,
                 object : MockAuthService {},
                 FunctionServiceImpl(mockDatabase),
-                FunctionMetadataServiceImpl(mockDatabase)
+                FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
+                object : MockMicrosoftService {}
             )
         }
 

@@ -5,7 +5,8 @@ import io.ktor.server.config.*
 data class AppConfig(
     val functionHistoryCleanup: FunctionHistoryCleanupConfig,
     val allowedCORSHosts: List<String>,
-    val databaseConfig: DatabaseConfig
+    val databaseConfig: DatabaseConfig,
+    val entraConfig: EntraConfig
 ) {
     companion object {
         fun load(config: ApplicationConfig): AppConfig {
@@ -21,7 +22,8 @@ data class AppConfig(
                         ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.deleteOlderThanDays\""),
                 ),
                 allowedCORSHosts = allowedCORSHosts,
-                databaseConfig = DatabaseConfig.load()
+                databaseConfig = DatabaseConfig.load(),
+                entraConfig = EntraConfig.load()
             )
         }
     }
@@ -42,6 +44,20 @@ class DatabaseConfig(
             jdbcUrl = getConfigFromEnvOrThrow("JDBC_URL"),
             username = getConfigFromEnvOrThrow("DATABASE_USERNAME"),
             password = getConfigFromEnvOrThrow("DATABASE_PASSWORD")
+        )
+    }
+}
+
+class EntraConfig(
+    val tenantId: String,
+    val clientId: String,
+    val clientSecret: String,
+) {
+    companion object {
+        fun load(): EntraConfig = EntraConfig(
+            tenantId = getConfigFromEnvOrThrow("tenantId"),
+            clientId = getConfigFromEnvOrThrow("clientId"),
+            clientSecret = getConfigFromEnvOrThrow("CLIENT_SECRET")
         )
     }
 }

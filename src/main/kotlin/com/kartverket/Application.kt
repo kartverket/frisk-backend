@@ -10,6 +10,8 @@ import com.kartverket.functions.FunctionService
 import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.microsoft.MicrosoftService
+import com.kartverket.microsoft.MicrosoftServiceImpl
 import com.kartverket.plugins.*
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
@@ -70,10 +72,11 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int, database: Database) {
 fun Application.module() {
     val config = AppConfig.load(environment.config)
     val database = JDBCDatabase.create(config.databaseConfig)
+    val microsoftService = MicrosoftServiceImpl.load(config.entraConfig)
     val functionService = FunctionServiceImpl(database)
-    val functionMetadataService = FunctionMetadataServiceImpl(database)
-    val authService = AuthServiceImpl(functionMetadataService)
-    configureAPILayer(config, database, authService, functionService, functionMetadataService)
+    val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
+    val authService = AuthServiceImpl(functionMetadataService, microsoftService)
+    configureAPILayer(config, database, authService, functionService, functionMetadataService, microsoftService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
@@ -86,10 +89,11 @@ fun Application.configureAPILayer(
     database: Database,
     authService: AuthService,
     functionService: FunctionService,
-    functionMetadataService: FunctionMetadataService
+    functionMetadataService: FunctionMetadataService,
+    microsoftService: MicrosoftService
 ) {
     configureSerialization()
     configureCors(config)
     configureAuth()
-    configureRouting(database, authService, functionService, functionMetadataService)
+    configureRouting(database, authService, functionService, functionMetadataService, microsoftService)
 }
