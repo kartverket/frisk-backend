@@ -9,6 +9,7 @@ import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.functions.FunctionService
 import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataService
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import com.kartverket.plugins.*
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
@@ -33,7 +34,10 @@ fun main() {
     ).start(wait = true)
 }
 
-fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistoryCleanupConfig, database: Database): Job {
+fun CoroutineScope.launchCleanupJob(
+    functionHistoryCleanupConfig: FunctionHistoryCleanupConfig,
+    database: Database
+): Job {
     val cleanupIntervalWeeks = functionHistoryCleanupConfig.cleanupIntervalWeeks
     val cleanupInterval: Duration = (cleanupIntervalWeeks * 7).days
 
@@ -67,9 +71,9 @@ fun Application.module() {
     val config = AppConfig.load(environment.config)
     val database = JDBCDatabase.create(config.databaseConfig)
     val functionService = FunctionServiceImpl(database)
-    FunctionMetadataService.database = database
-    val authService = AuthServiceImpl()
-    configureAPILayer(config, database, authService, functionService)
+    val functionMetadataService = FunctionMetadataServiceImpl(database)
+    val authService = AuthServiceImpl(functionMetadataService)
+    configureAPILayer(config, database, authService, functionService, functionMetadataService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
@@ -77,9 +81,15 @@ fun Application.module() {
     }
 }
 
-fun Application.configureAPILayer(config: AppConfig, database: Database, authService: AuthService, functionService: FunctionService) {
+fun Application.configureAPILayer(
+    config: AppConfig,
+    database: Database,
+    authService: AuthService,
+    functionService: FunctionService,
+    functionMetadataService: FunctionMetadataService
+) {
     configureSerialization()
     configureCors(config)
     configureAuth()
-    configureRouting(database, authService, functionService)
+    configureRouting(database, authService, functionService, functionMetadataService)
 }

@@ -8,9 +8,10 @@ import com.kartverket.auth.AuthServiceImpl
 import com.kartverket.functions.dto.CreateFunctionDto
 import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
-import com.kartverket.functions.metadata.FunctionMetadata
-import com.kartverket.functions.metadata.UpdateFunctionMetadataDTO
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.FunctionMetadata
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -29,8 +30,9 @@ class FunctionMetadataIntegrationTest {
     @Test
     fun `Create, read, update and delete function metadata`() = testApplication {
         val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
+        val functionMetadataService = FunctionMetadataServiceImpl(database)
         application {
-            testModule(database, authService = AuthServiceImpl())
+            testModule(database, authService = AuthServiceImpl(functionMetadataService), functionMetadataService = functionMetadataService)
         }
 
         val functionName = "${UUID.randomUUID()}"

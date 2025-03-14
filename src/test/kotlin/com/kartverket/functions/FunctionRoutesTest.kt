@@ -6,14 +6,13 @@ import com.kartverket.TestUtils.testModule
 import com.kartverket.functions.dto.CreateFunctionDto
 import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.dto.UpdateFunctionDto
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
-import com.kartverket.functions.metadata.FunctionMetadataService
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.MockFunctionMetadataService
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import io.mockk.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.*
@@ -52,45 +51,49 @@ class FunctionRoutesTest {
 
     @Test
     fun testCreateFunctionWithMetadata() = testApplication {
+        var functionMetadataWasAdded = false
         application {
-            testModule(functionService = object : MockFunctionService {
-                override fun createFunction(newFunction: CreateFunctionDto): Function? {
-                    return Function(
-                        id = 0,
-                        name = newFunction.name,
-                        description = newFunction.description,
-                        parentId = 1,
-                        path = "/functions",
-                        orderIndex = 0
-                    )
+            testModule(
+                functionService = object : MockFunctionService {
+                    override fun createFunction(newFunction: CreateFunctionDto): Function? {
+                        return Function(
+                            id = 0,
+                            name = newFunction.name,
+                            description = newFunction.description,
+                            parentId = 1,
+                            path = "/functions",
+                            orderIndex = 0
+                        )
+                    }
+                },
+                functionMetadataService = object : MockFunctionMetadataService {
+                    override fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
+                        assertEquals(0, functionId)
+                        functionMetadataWasAdded = true
+                    }
                 }
-            })
-        }
-        mockkObject(FunctionMetadataService) {
-            val uniqueName = "${UUID.randomUUID()}"
-            val metadata = CreateFunctionMetadataDTO(key = "testKey", value = "testValue")
-
-            val request = CreateFunctionWithMetadataDto(
-                function = CreateFunctionDto(
-                    name = uniqueName, description = "desc", parentId = 1
-                ), metadata = listOf(metadata)
             )
-
-            every { FunctionMetadataService.addMetadataToFunction(any(), any()) } returns Unit
-
-            val response = client.post("/functions") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                contentType(ContentType.Application.Json)
-                setBody(Json.encodeToString(request))
-            }
-
-            assertEquals(HttpStatusCode.OK, response.status)
-
-            val createdFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
-            assertEquals(uniqueName, createdFunction.name)
-
-            verify { FunctionMetadataService.addMetadataToFunction(createdFunction.id, metadata) }
         }
+        val uniqueName = "${UUID.randomUUID()}"
+        val metadata = CreateFunctionMetadataDTO(key = "testKey", value = "testValue")
+
+        val request = CreateFunctionWithMetadataDto(
+            function = CreateFunctionDto(
+                name = uniqueName, description = "desc", parentId = 1
+            ), metadata = listOf(metadata)
+        )
+
+        val response = client.post("/functions") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(request))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val createdFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
+        assertEquals(uniqueName, createdFunction.name)
+        assertTrue(functionMetadataWasAdded)
     }
 
     /*    @Test
@@ -310,16 +313,15 @@ class FunctionRoutesTest {
             )
         }
 
-        mockkObject(FunctionMetadataService) {
-            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
-            val response = client.put("/functions/1234567913") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                contentType(ContentType.Application.Json)
-                setBody("""{"name": "Updated Name", "description": "Updated Description", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
-            }
 
-            assertEquals(HttpStatusCode.NotFound, response.status)
+        val response = client.put("/functions/1234567913") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            contentType(ContentType.Application.Json)
+            setBody("""{"name": "Updated Name", "description": "Updated Description", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
         }
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+
     }
 
     @Test
@@ -351,17 +353,13 @@ class FunctionRoutesTest {
             testModule()
         }
 
-        mockkObject(FunctionMetadataService) {
-            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
-
-            val response = client.put("/functions/1") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                contentType(ContentType.Application.Json)
-                setBody("""{"name": "", "description": "Updated Description", "parentId": 2}""")
-            }
-
-            assertEquals(HttpStatusCode.BadRequest, response.status)
+        val response = client.put("/functions/1") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            contentType(ContentType.Application.Json)
+            setBody("""{"name": "", "description": "Updated Description", "parentId": 2}""")
         }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test
@@ -381,15 +379,13 @@ class FunctionRoutesTest {
                     }
                 })
         }
-        mockkObject(FunctionMetadataService) {
-            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
-            val response = client.delete("/functions/1") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
 
-            assertEquals(HttpStatusCode.NoContent, response.status)
-            assertEquals(1, deletedId)
+        val response = client.delete("/functions/1") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
+
+        assertEquals(HttpStatusCode.NoContent, response.status)
+        assertEquals(1, deletedId)
     }
 
     @Test

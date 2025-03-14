@@ -9,6 +9,7 @@ import com.kartverket.functions.dto.CreateFunctionDto
 import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
 import com.kartverket.functions.dto.UpdateFunctionDto
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -26,8 +27,9 @@ class FunctionRoutesIntegrationTest {
     @Test
     fun `Create, read, update and delete function`() = testApplication {
         val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
+        val functionMetadataService = FunctionMetadataServiceImpl(database)
         application {
-            testModule(database, authService = AuthServiceImpl())
+            testModule(database, authService = AuthServiceImpl(functionMetadataService), functionMetadataService = functionMetadataService)
         }
 
         val functionName = "${UUID.randomUUID()}"

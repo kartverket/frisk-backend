@@ -4,6 +4,7 @@ import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.configureAPILayer
 import com.kartverket.functions.FunctionServiceImpl
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
@@ -20,7 +21,7 @@ class ApplicationTest {
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
             val mockDatabase = object : MockDatabase {}
-            configureAPILayer(exampleConfig, mockDatabase, object : MockAuthService {}, FunctionServiceImpl(mockDatabase))
+            configureAPILayer(exampleConfig, mockDatabase, object : MockAuthService {}, FunctionServiceImpl(mockDatabase), FunctionMetadataServiceImpl(mockDatabase))
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -67,7 +68,8 @@ class ApplicationTest {
                 ),
                 mockDatabase,
                 object : MockAuthService {},
-                FunctionServiceImpl(mockDatabase)
+                FunctionServiceImpl(mockDatabase),
+                FunctionMetadataServiceImpl(mockDatabase)
             )
         }
 
