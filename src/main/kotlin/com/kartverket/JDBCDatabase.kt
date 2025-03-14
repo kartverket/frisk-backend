@@ -7,6 +7,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import kotlinx.serialization.Serializable
 import org.flywaydb.core.Flyway
 import java.sql.Connection
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 interface Database {
@@ -79,6 +80,12 @@ class JDBCDatabase(
                 throw e
             }
         }
+    }
+}
+
+inline fun <T> Database.useStatement(query: String, block: (statement: PreparedStatement) -> T): T {
+    return getConnection().use { connection ->
+        connection.prepareStatement(query).use(block)
     }
 }
 

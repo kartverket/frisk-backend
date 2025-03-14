@@ -9,6 +9,7 @@ import com.kartverket.auth.AuthServiceImpl
 import com.kartverket.functions.dto.CreateFunctionDto
 import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
+import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.dto.UpdateFunctionDto
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import io.ktor.client.request.*
@@ -34,6 +35,7 @@ class FunctionRoutesIntegrationTest {
             testModule(
                 database,
                 authService = AuthServiceImpl("", functionMetadataService, microsoftService),
+                functionService = FunctionServiceImpl(database),
                 functionMetadataService = functionMetadataService
             )
         }
