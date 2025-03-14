@@ -1,12 +1,11 @@
 package com.kartverket.functions.metadata
 
+import com.kartverket.MockAuthService
 import com.kartverket.TestUtils.addMetadata
 import com.kartverket.TestUtils.createFunction
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
 import com.kartverket.functions.Function
-import com.kartverket.plugins.hasFunctionAccess
-import com.kartverket.plugins.hasMetadataAccess
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -117,23 +116,23 @@ class FunctionMetadataRoutesTest {
     @Test
     fun testAddMetadataForbidden() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasFunctionAccess(call: ApplicationCall, functionId: Int): Boolean = false
+                }
+            )
         }
 
         mockkObject(FunctionMetadataService) {
-            mockkStatic(::hasFunctionAccess) {
-                every { any<ApplicationCall>().hasFunctionAccess(1) } returns false
-
-                val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
-                val response = client.post("/functions/1/metadata") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(request))
-                }
-
-                assertEquals(HttpStatusCode.Forbidden, response.status)
-                verify(exactly = 0) { FunctionMetadataService.addMetadataToFunction(any(), any()) }
+            val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
+            val response = client.post("/functions/1/metadata") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+                contentType(ContentType.Application.Json)
+                setBody(Json.encodeToString(request))
             }
+
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+            verify(exactly = 0) { FunctionMetadataService.addMetadataToFunction(any(), any()) }
         }
     }
 
@@ -210,22 +209,22 @@ class FunctionMetadataRoutesTest {
     @Test
     fun testUpdateMetadataForbidden() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasMetadataAccess(call: ApplicationCall, metadataId: Int) = false
+                }
+            )
         }
 
         mockkObject(FunctionMetadataService) {
-            mockkStatic(::hasMetadataAccess) {
-                every { any<ApplicationCall>().hasMetadataAccess(any()) } returns false
-
-                val response = client.patch("/metadata/1") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(UpdateFunctionMetadataDTO("new value")))
-                }
-
-                assertEquals(HttpStatusCode.Forbidden, response.status)
-                verify(exactly = 0) { FunctionMetadataService.updateMetadataValue(any(), any()) }
+            val response = client.patch("/metadata/1") {
+                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+                contentType(ContentType.Application.Json)
+                setBody(Json.encodeToString(UpdateFunctionMetadataDTO("new value")))
             }
+
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+            verify(exactly = 0) { FunctionMetadataService.updateMetadataValue(any(), any()) }
         }
     }
 
@@ -259,12 +258,14 @@ class FunctionMetadataRoutesTest {
     @Test
     fun testDeleteMetadataForbidden() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasMetadataAccess(call: ApplicationCall, functionId: Int): Boolean = false
+                }
+            )
         }
 
         mockkObject(FunctionMetadataService)
-        mockkStatic(::hasMetadataAccess)
-        every { any<ApplicationCall>().hasMetadataAccess(any()) } returns false
 
         val response = client.delete("/metadata/1") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")

@@ -1,8 +1,7 @@
 package com.kartverket.functions
 
+import com.kartverket.auth.AuthService
 import com.kartverket.functions.metadata.FunctionMetadataService
-import com.kartverket.plugins.hasFunctionAccess
-import com.kartverket.plugins.hasSuperUserAccess
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -12,7 +11,9 @@ import io.ktor.util.logging.KtorSimpleLogger
 
 val logger = KtorSimpleLogger("FunctionRoutes")
 
-fun Route.functionRoutes() {
+fun Route.functionRoutes(
+    authService: AuthService
+) {
     route("/functions") {
         get {
             logger.info("Received get on /functions")
@@ -68,7 +69,7 @@ fun Route.functionRoutes() {
                         return@put
                     }
 
-                if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
+                if (!authService.hasFunctionAccess(call, id) && !authService.hasSuperUserAccess(call)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@put
@@ -92,7 +93,7 @@ fun Route.functionRoutes() {
                         return@delete
                     }
 
-                if (!call.hasFunctionAccess(id) && !call.hasSuperUserAccess()) {
+                if (!authService.hasFunctionAccess(call, id) && !authService.hasSuperUserAccess(call)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
@@ -120,7 +121,7 @@ fun Route.functionRoutes() {
                     return@get
                 }
 
-                val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                val hasAccess = authService.hasFunctionAccess(call, id) || authService.hasSuperUserAccess(call)
                 call.respond(hasAccess)
             }
         }
