@@ -2,38 +2,34 @@ package com.kartverket.functions.metadata
 
 import com.kartverket.Database
 import com.kartverket.functions.Function
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.FunctionMetadata
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
 import com.kartverket.microsoft.MicrosoftService
+import com.kartverket.useStatement
 import com.microsoft.graph.models.odataerrors.ODataError
-import kotlinx.serialization.Serializable
 import java.sql.ResultSet
-
-@Serializable
-data class FunctionMetadata(
-    val id: Int,
-    val functionId: Int,
-    val key: String,
-    val value: String,
-)
-
-@Serializable
-data class CreateFunctionMetadataDTO(
-    val key: String,
-    val value: String,
-)
-
-@Serializable
-data class UpdateFunctionMetadataDTO(
-    val value: String,
-)
 
 enum class SpecialMetadataKey(val key: String) {
     TEAM("team")
 }
 
-object FunctionMetadataService {
-    lateinit var database: Database
+interface FunctionMetadataService {
+    fun getFunctionMetadataById(id: Int): FunctionMetadata?
+    fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata>
+    fun getFunctionMetadataKeys(search: String? = null): List<String>
+    fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO)
+    fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO)
+    fun deleteMetadata(id: Int)
+    fun getIndicators(key: String, value: String?, functionId: Int): List<Function>
+}
 
-    fun getFunctionMetadataById(id: Int): FunctionMetadata? {
+class FunctionMetadataServiceImpl(
+    private val database: Database,
+    private val microsoftService: MicrosoftService,
+) : FunctionMetadataService {
+
+    override fun getFunctionMetadataById(id: Int): FunctionMetadata? {
         val query = """
             SELECT fm.id, fm.function_id, fmk.key, fm.value 
             FROM function_metadata fm 
@@ -41,27 +37,23 @@ object FunctionMetadataService {
             WHERE fm.id = ?
         """.trimIndent()
 
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, id)
-                val resultSet = statement.executeQuery()
-                if (resultSet.next()) {
-                    return FunctionMetadata(
-                        id = resultSet.getInt("id"),
-                        functionId = resultSet.getInt("function_id"),
-                        key = resultSet.getString("key"),
-                        value = resultSet.getString("value"),
-                    )
-                }
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            val resultSet = statement.executeQuery()
+            if (resultSet.next()) {
+                return FunctionMetadata(
+                    id = resultSet.getInt("id"),
+                    functionId = resultSet.getInt("function_id"),
+                    key = resultSet.getString("key"),
+                    value = resultSet.getString("value"),
+                )
             }
         }
         return null
     }
 
-    fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
+    override fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
         require(!(functionId == null && key == null)) { "functionId and key cannot both be null" }
-
-        val metadata = mutableListOf<FunctionMetadata>()
 
         val baseQuery = """
             SELECT fm.id, fm.function_id, fmk.key, fm.value 
@@ -88,96 +80,86 @@ object FunctionMetadataService {
         val whereClause = if (conditions.isNotEmpty()) " WHERE ${conditions.joinToString(" AND ")}" else ""
         val query = baseQuery + whereClause
 
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                parameters.forEachIndexed { index, param ->
-                    when (param) {
-                        is Int -> statement.setInt(index + 1, param)
-                        is String -> statement.setString(index + 1, param)
-                        else -> throw IllegalArgumentException("Unsupported parameter type")
-                    }
+        database.useStatement(query) { statement ->
+            parameters.forEachIndexed { index, param ->
+                when (param) {
+                    is Int -> statement.setInt(index + 1, param)
+                    is String -> statement.setString(index + 1, param)
+                    else -> throw IllegalArgumentException("Unsupported parameter type")
                 }
-                val resultSet = statement.executeQuery()
+            }
+            val resultSet = statement.executeQuery()
+            return buildList {
                 while (resultSet.next()) {
-                    metadata.add(resultSet.toFunctionMetadata())
+                    add(resultSet.toFunctionMetadata())
                 }
             }
         }
-        return metadata
     }
 
 
-    fun getFunctionMetadataKeys(search: String? = null): List<String> {
-        val keys = mutableListOf<String>()
+    override fun getFunctionMetadataKeys(search: String?): List<String> {
         val query = if (search != null) {
             "SELECT key FROM function_metadata_keys WHERE LOWER(key) LIKE ?"
         } else {
             "SELECT key FROM function_metadata_keys"
         }
 
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                if (search != null) {
-                    statement.setString(1, "%${search.lowercase()}%")
-                }
-                val resultSet = statement.executeQuery()
+        database.useStatement(query) { statement ->
+            if (search != null) {
+                statement.setString(1, "%${search.lowercase()}%")
+            }
+            val resultSet = statement.executeQuery()
+            return buildList {
                 while (resultSet.next()) {
                     val key = resultSet.getString("key")
-                    keys.add(key)
+                    add(key)
                 }
             }
         }
-        return keys
     }
 
-    fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
+    override fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
         require(isValueValidForKey(newMetadata.key, newMetadata.value)) {
             "The value ${newMetadata.value} is not a valid for key ${newMetadata.key}"
         }
 
-        val query = "INSERT INTO function_metadata_keys (key) " +
-                "VALUES (?) " +
-                "ON CONFLICT (key) DO NOTHING; " +
-                "INSERT INTO function_metadata (function_id, key_id, value) " +
-                "VALUES ( " +
-                "    ?, " +
-                "    (SELECT id FROM function_metadata_keys WHERE key = ?), " +
-                "    ? " +
-                ")"
+        val query = """
+                INSERT INTO function_metadata_keys (key) 
+                VALUES (?) 
+                ON CONFLICT (key) DO NOTHING; 
+                
+                INSERT INTO function_metadata (function_id, key_id, value) 
+                VALUES (?, (SELECT id FROM function_metadata_keys WHERE key = ?), ?)
+                """.trimIndent()
 
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setString(1, newMetadata.key.lowercase())
-                statement.setInt(2, functionId)
-                statement.setString(3, newMetadata.key.lowercase())
-                statement.setString(4, newMetadata.value)
-                statement.executeUpdate()
-            }
+        database.useStatement(query) { statement ->
+            statement.setString(1, newMetadata.key.lowercase())
+            statement.setInt(2, functionId)
+            statement.setString(3, newMetadata.key.lowercase())
+            statement.setString(4, newMetadata.value)
+            statement.executeUpdate()
         }
     }
 
-    fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
+    override fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
         val query = "UPDATE function_metadata SET value = ? WHERE id = ?"
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setString(1, updatedMetadata.value)
-                statement.setInt(2, id)
-                statement.executeUpdate()
-            }
+        database.useStatement(query) { statement ->
+            statement.setString(1, updatedMetadata.value)
+            statement.setInt(2, id)
+            statement.executeUpdate()
         }
     }
 
-    fun deleteMetadata(id: Int) {
+    override fun deleteMetadata(id: Int) {
         val query = "DELETE FROM function_metadata WHERE id = ?"
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, id)
-                statement.executeUpdate()
-            }
+        database.useStatement(query) { statement ->
+            statement.setInt(1, id)
+            statement.executeUpdate()
         }
     }
 
-    fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
+    override fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
         var query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
                 "SELECT * FROM functions AS f " +
                 "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
@@ -189,19 +171,17 @@ object FunctionMetadataService {
             query += " AND fm.value = ?"
         }
 
-        val functions = mutableListOf<Function>()
+        database.useStatement(query) { statement ->
+            statement.setInt(1, functionId)
+            statement.setString(2, key)
+            if (value != null) {
+                statement.setString(3, value)
+            }
 
-        database.getConnection().use { connection ->
-            connection.prepareStatement(query).use { statement ->
-                statement.setInt(1, functionId)
-                statement.setString(2, key)
-                if (value != null) {
-                    statement.setString(3, value)
-                }
-
-                val resultSet = statement.executeQuery()
+            val resultSet = statement.executeQuery()
+            return buildList {
                 while (resultSet.next()) {
-                    functions.add(
+                    add(
                         Function(
                             id = resultSet.getInt("id"),
                             name = resultSet.getString("name"),
@@ -212,7 +192,6 @@ object FunctionMetadataService {
                         )
                     )
                 }
-                return functions
             }
         }
     }
@@ -221,7 +200,7 @@ object FunctionMetadataService {
         return when (key) {
             SpecialMetadataKey.TEAM.key -> {
                 try {
-                    val group = MicrosoftService.getGroup(value)
+                    val group = microsoftService.getGroup(value)
                     group.id == value
                 } catch (error: ODataError) {
                     false

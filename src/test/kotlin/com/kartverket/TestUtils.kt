@@ -2,13 +2,17 @@ package com.kartverket
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.kartverket.functions.CreateFunctionDto
-import com.kartverket.functions.CreateFunctionWithMetadataDto
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
 import com.kartverket.functions.FunctionService
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
+import com.kartverket.functions.FunctionServiceImpl
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
 import com.kartverket.functions.metadata.FunctionMetadataService
-import com.kartverket.plugins.AUTH_JWT
+import com.kartverket.auth.AUTH_JWT
+import com.kartverket.auth.AuthService
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.plugins.configureRouting
 import com.kartverket.plugins.configureSerialization
 import io.ktor.client.*
@@ -20,22 +24,20 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.sql.Connection
 import java.util.*
 import kotlin.test.assertEquals
 
 object TestUtils {
-    private val mockDatabase: Database = object : Database {
-        override fun getDump(): List<DumpRow> {
-            TODO("Not yet implemented")
-        }
-
-        override fun getConnection(): Connection {
-            TODO("Not yet implemented")
-        }
-
-    }
-    fun Application.testModule(testDatabase: Database = mockDatabase) {
+    fun Application.testModule(
+        testDatabase: Database = object : MockDatabase {},
+        authService: AuthService = object : MockAuthService {},
+        microsoftService: MicrosoftService = object : MockMicrosoftService {},
+        functionService: FunctionService = FunctionServiceImpl(testDatabase),
+        functionMetadataService: FunctionMetadataService = FunctionMetadataServiceImpl(
+            testDatabase,
+            microsoftService
+        ),
+    ) {
         configureSerialization()
 
         install(Authentication) {
@@ -51,9 +53,8 @@ object TestUtils {
                 validate { credentials -> JWTPrincipal(credentials.payload) }
             }
         }
-        configureRouting(testDatabase)
-        FunctionService.database = testDatabase
-        FunctionMetadataService.database = testDatabase
+
+        configureRouting(testDatabase, authService, functionService, functionMetadataService, microsoftService)
     }
 
     fun generateTestToken(): String {

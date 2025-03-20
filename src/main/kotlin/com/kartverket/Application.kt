@@ -1,10 +1,17 @@
 package com.kartverket
 
+import com.kartverket.auth.AuthService
+import com.kartverket.auth.AuthServiceImpl
+import com.kartverket.auth.configureAuth
+import com.kartverket.auth.logger
 import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
-import com.kartverket.functions.Function
 import com.kartverket.functions.FunctionService
+import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataService
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.microsoft.MicrosoftService
+import com.kartverket.microsoft.MicrosoftServiceImpl
 import com.kartverket.plugins.*
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
@@ -29,7 +36,10 @@ fun main() {
     ).start(wait = true)
 }
 
-fun CoroutineScope.launchCleanupJob(functionHistoryCleanupConfig: FunctionHistoryCleanupConfig, database: Database): Job {
+fun CoroutineScope.launchCleanupJob(
+    functionHistoryCleanupConfig: FunctionHistoryCleanupConfig,
+    database: Database
+): Job {
     val cleanupIntervalWeeks = functionHistoryCleanupConfig.cleanupIntervalWeeks
     val cleanupInterval: Duration = (cleanupIntervalWeeks * 7).days
 
@@ -62,9 +72,11 @@ fun cleanupFunctionsHistory(deleteOlderThanDays: Int, database: Database) {
 fun Application.module() {
     val config = AppConfig.load(environment.config)
     val database = JDBCDatabase.create(config.databaseConfig)
-    FunctionService.database = database
-    FunctionMetadataService.database = database
-    configureAPILayer(config, database)
+    val microsoftService = MicrosoftServiceImpl.load(config.entraConfig)
+    val functionService = FunctionServiceImpl(database)
+    val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
+    val authService = AuthServiceImpl(config.authConfig.superUserGroupId, functionMetadataService, microsoftService)
+    configureAPILayer(config, database, authService, functionService, functionMetadataService, microsoftService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
@@ -72,9 +84,16 @@ fun Application.module() {
     }
 }
 
-fun Application.configureAPILayer(config: AppConfig, database: Database) {
+fun Application.configureAPILayer(
+    config: AppConfig,
+    database: Database,
+    authService: AuthService,
+    functionService: FunctionService,
+    functionMetadataService: FunctionMetadataService,
+    microsoftService: MicrosoftService
+) {
     configureSerialization()
     configureCors(config)
-    configureAuth()
-    configureRouting(database)
+    configureAuth(config.authConfig)
+    configureRouting(database, authService, functionService, functionMetadataService, microsoftService)
 }

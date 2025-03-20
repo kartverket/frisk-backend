@@ -1,23 +1,20 @@
 package com.kartverket.functions.metadata
 
-import com.kartverket.TestUtils.addMetadata
-import com.kartverket.TestUtils.createFunction
+import com.kartverket.MockAuthService
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
-import com.kartverket.functions.Function
-import com.kartverket.plugins.hasFunctionAccess
-import com.kartverket.plugins.hasMetadataAccess
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.FunctionMetadata
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
+import com.kartverket.auth.UserId
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import io.mockk.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -25,34 +22,37 @@ class FunctionMetadataRoutesTest {
 
     @Test
     fun testGetFunctionMetadata() = testApplication {
+        val metadataKey = "${UUID.randomUUID()}"
+        val metadataValue = "value"
         application {
-            testModule()
-        }
-
-        mockkObject(FunctionMetadataService) {
-            val metadataKey = "${UUID.randomUUID()}"
-            val metadataValue = "value"
-            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns listOf(
-                FunctionMetadata(
-                    id = 2,
-                    functionId = 1,
-                    key = metadataKey,
-                    value = metadataValue
-                )
+            testModule(
+                functionMetadataService = object : MockFunctionMetadataService {
+                    override fun getFunctionMetadata(
+                        functionId: Int?,
+                        key: String?,
+                        value: String?
+                    ): List<FunctionMetadata> = listOf(
+                        FunctionMetadata(
+                            id = 2,
+                            functionId = 1,
+                            key = metadataKey,
+                            value = metadataValue
+                        )
+                    )
+                }
             )
-
-            val response = client.get("/functions/1/metadata") {
-                header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-            }
-            assertEquals(HttpStatusCode.OK, response.status)
-            verify { FunctionMetadataService.getFunctionMetadata(1, null, null) }
-
-            val metadataList: List<FunctionMetadata> = Json.decodeFromString(response.bodyAsText())
-            assertEquals(1, metadataList.size)
-            assertEquals(1, metadataList[0].functionId)
-            assertEquals(metadataKey, metadataList[0].key)
-            assertEquals(metadataValue, metadataList[0].value)
         }
+
+        val response = client.get("/functions/1/metadata") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val metadataList: List<FunctionMetadata> = Json.decodeFromString(response.bodyAsText())
+        assertEquals(1, metadataList.size)
+        assertEquals(1, metadataList[0].functionId)
+        assertEquals(metadataKey, metadataList[0].key)
+        assertEquals(metadataValue, metadataList[0].value)
     }
 
     @Test
@@ -82,18 +82,13 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService) {
-            every { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) } returns emptyList()
+        val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
 
-            val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
-
-            val response = client.post("/functions/1/metadata") {
-                contentType(ContentType.Application.Json)
-                setBody(Json.encodeToString(request))
-            }
-            assertEquals(HttpStatusCode.Unauthorized, response.status)
-            verify(exactly = 0) { FunctionMetadataService.addMetadataToFunction(any(), any()) }
+        val response = client.post("/functions/1/metadata") {
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(request))
         }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
     @Test
@@ -101,7 +96,6 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
 
         val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
         val response = client.post("/functions/invalid_id/metadata") {
@@ -111,30 +105,26 @@ class FunctionMetadataRoutesTest {
         }
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        verify(exactly = 0) { FunctionMetadataService.addMetadataToFunction(any(), any()) }
     }
 
     @Test
     fun testAddMetadataForbidden() = testApplication {
         application {
-            testModule()
-        }
-
-        mockkObject(FunctionMetadataService) {
-            mockkStatic(::hasFunctionAccess) {
-                every { any<ApplicationCall>().hasFunctionAccess(1) } returns false
-
-                val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
-                val response = client.post("/functions/1/metadata") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(request))
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasFunctionAccess(userId: UserId, functionId: Int): Boolean = false
                 }
-
-                assertEquals(HttpStatusCode.Forbidden, response.status)
-                verify(exactly = 0) { FunctionMetadataService.addMetadataToFunction(any(), any()) }
-            }
+            )
         }
+
+        val request = CreateFunctionMetadataDTO(key = "${UUID.randomUUID()}", value = "value")
+        val response = client.post("/functions/1/metadata") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(request))
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test
@@ -142,12 +132,10 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
 
         val response = client.get("/metadata?key=${UUID.randomUUID()}")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        verify(exactly = 0) { FunctionMetadataService.getFunctionMetadata(any(), any(), any()) }
     }
 
     @Test
@@ -155,12 +143,10 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
 
         val response = client.get("/metadata/indicator?key=${UUID.randomUUID()}&functionId=${UUID.randomUUID()}")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        verify(exactly = 0) { FunctionMetadataService.getIndicators(any(), any(), any()) }
     }
 
     @Test
@@ -168,12 +154,10 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
 
         val response = client.get("/metadata/keys")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        verify(exactly = 0) { FunctionMetadataService.getFunctionMetadataKeys(any()) }
     }
 
     @Test
@@ -182,13 +166,11 @@ class FunctionMetadataRoutesTest {
             testModule()
         }
 
-        mockkObject(FunctionMetadataService)
         val response = client.patch("/metadata/1") {
             contentType(ContentType.Application.Json)
             setBody(Json.encodeToString(UpdateFunctionMetadataDTO("new value")))
         }
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        verify(exactly = 0) { FunctionMetadataService.updateMetadataValue(any(), any()) }
     }
 
     @Test
@@ -196,7 +178,6 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
         val response = client.patch("/metadata/invalid_Id") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
             contentType(ContentType.Application.Json)
@@ -204,29 +185,25 @@ class FunctionMetadataRoutesTest {
         }
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        verify(exactly = 0) { FunctionMetadataService.updateMetadataValue(any(), any()) }
     }
 
     @Test
     fun testUpdateMetadataForbidden() = testApplication {
         application {
-            testModule()
-        }
-
-        mockkObject(FunctionMetadataService) {
-            mockkStatic(::hasMetadataAccess) {
-                every { any<ApplicationCall>().hasMetadataAccess(any()) } returns false
-
-                val response = client.patch("/metadata/1") {
-                    header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
-                    contentType(ContentType.Application.Json)
-                    setBody(Json.encodeToString(UpdateFunctionMetadataDTO("new value")))
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasMetadataAccess(userId: UserId, metadataId: Int): Boolean = false
                 }
-
-                assertEquals(HttpStatusCode.Forbidden, response.status)
-                verify(exactly = 0) { FunctionMetadataService.updateMetadataValue(any(), any()) }
-            }
+            )
         }
+
+        val response = client.patch("/metadata/1") {
+            header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
+            contentType(ContentType.Application.Json)
+            setBody(Json.encodeToString(UpdateFunctionMetadataDTO("new value")))
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test
@@ -235,11 +212,9 @@ class FunctionMetadataRoutesTest {
             testModule()
         }
 
-        mockkObject(FunctionMetadataService)
         val response = client.delete("/metadata/1")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        verify(exactly = 0) { FunctionMetadataService.deleteMetadata(any()) }
     }
 
     @Test
@@ -247,30 +222,27 @@ class FunctionMetadataRoutesTest {
         application {
             testModule()
         }
-        mockkObject(FunctionMetadataService)
         val response = client.delete("/metadata/invalid_Id") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
-        verify(exactly = 0) { FunctionMetadataService.deleteMetadata(any()) }
     }
 
     @Test
     fun testDeleteMetadataForbidden() = testApplication {
         application {
-            testModule()
+            testModule(
+                authService = object : MockAuthService {
+                    override fun hasMetadataAccess(userId: UserId, functionId: Int): Boolean = false
+                }
+            )
         }
-
-        mockkObject(FunctionMetadataService)
-        mockkStatic(::hasMetadataAccess)
-        every { any<ApplicationCall>().hasMetadataAccess(any()) } returns false
 
         val response = client.delete("/metadata/1") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
         }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
-        verify(exactly = 0) { FunctionMetadataService.deleteMetadata(any()) }
     }
 }

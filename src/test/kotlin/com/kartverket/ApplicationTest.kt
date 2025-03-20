@@ -1,9 +1,11 @@
-import com.kartverket.DumpRow
-import com.kartverket.Database
+import com.kartverket.*
 import com.kartverket.configuration.AppConfig
+import com.kartverket.configuration.AuthConfig
 import com.kartverket.configuration.DatabaseConfig
+import com.kartverket.configuration.EntraConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
-import com.kartverket.configureAPILayer
+import com.kartverket.functions.FunctionServiceImpl
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
@@ -12,25 +14,28 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
-import java.sql.Connection
 
 class ApplicationTest {
-    private val exampleConfig = AppConfig(FunctionHistoryCleanupConfig(1, 1), emptyList(), DatabaseConfig("", "", ""))
-    private val mockDatabase = object : Database {
-        override fun getDump(): List<DumpRow> {
-            TODO("Not yet implemented")
-        }
-
-        override fun getConnection(): Connection {
-            TODO("Not yet implemented")
-        }
-
-    }
+    private val exampleConfig = AppConfig(
+        FunctionHistoryCleanupConfig(1, 1),
+        emptyList(),
+        DatabaseConfig("", "", ""),
+        EntraConfig("", "", ""),
+        AuthConfig("", "", "", "http://localhost/", "")
+    )
 
     @Test
     fun `Verify that authentication is enabled on non-public endpoints`() = testApplication {
         application {
-            configureAPILayer(exampleConfig, mockDatabase)
+            val mockDatabase = object : MockDatabase {}
+            configureAPILayer(
+                exampleConfig,
+                mockDatabase,
+                object : MockAuthService {},
+                FunctionServiceImpl(mockDatabase),
+                FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
+                object : MockMicrosoftService {}
+            )
             routing {
                 val publicEndpointsRegexList = listOf(
                     Regex("^/swagger"),
@@ -70,11 +75,16 @@ class ApplicationTest {
     @Test
     fun `Verify that CORS is enabled`() = testApplication {
         application {
+            val mockDatabase = object : MockDatabase {}
             configureAPILayer(
                 exampleConfig.copy(
                     allowedCORSHosts = listOf("test.com")
                 ),
-                mockDatabase
+                mockDatabase,
+                object : MockAuthService {},
+                FunctionServiceImpl(mockDatabase),
+                FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
+                object : MockMicrosoftService {}
             )
         }
 

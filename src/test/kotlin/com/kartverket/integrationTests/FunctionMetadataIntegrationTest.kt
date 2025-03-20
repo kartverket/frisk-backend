@@ -1,15 +1,18 @@
 package com.kartverket.integrationTests
 
 import com.kartverket.JDBCDatabase
+import com.kartverket.MockMicrosoftService
 import com.kartverket.TestDatabase
 import com.kartverket.TestUtils.generateTestToken
 import com.kartverket.TestUtils.testModule
-import com.kartverket.functions.CreateFunctionDto
-import com.kartverket.functions.CreateFunctionWithMetadataDto
+import com.kartverket.auth.AuthServiceImpl
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.Function
-import com.kartverket.functions.metadata.CreateFunctionMetadataDTO
-import com.kartverket.functions.metadata.FunctionMetadata
-import com.kartverket.functions.metadata.UpdateFunctionMetadataDTO
+import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.FunctionMetadata
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -28,8 +31,14 @@ class FunctionMetadataIntegrationTest {
     @Test
     fun `Create, read, update and delete function metadata`() = testApplication {
         val database = JDBCDatabase.create(testDatabase.getTestdatabaseConfig())
+        val microsoftService = object : MockMicrosoftService {}
+        val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
         application {
-            testModule(database)
+            testModule(
+                database,
+                authService = AuthServiceImpl("", functionMetadataService, microsoftService),
+                functionMetadataService = functionMetadataService
+            )
         }
 
         val functionName = "${UUID.randomUUID()}"

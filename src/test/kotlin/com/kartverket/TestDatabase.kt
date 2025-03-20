@@ -10,7 +10,6 @@ class TestDatabase {
     private val postgresContainer = PostgreSQLContainer("postgres:15-alpine").apply {
         start()
     }
-    lateinit var dataSource: HikariDataSource
 
     fun getTestdatabaseConfig(): DatabaseConfig {
         return DatabaseConfig(

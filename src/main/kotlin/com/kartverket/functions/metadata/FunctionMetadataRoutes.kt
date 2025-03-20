@@ -1,8 +1,9 @@
 package com.kartverket.functions.metadata
 
-import com.kartverket.plugins.hasFunctionAccess
-import com.kartverket.plugins.hasMetadataAccess
-import com.kartverket.plugins.hasSuperUserAccess
+import com.kartverket.auth.AuthService
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.metadata.dto.UpdateFunctionMetadataDTO
+import com.kartverket.auth.getUserId
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -14,8 +15,10 @@ import io.ktor.util.logging.*
 val logger = KtorSimpleLogger("FunctionRoutes")
 
 
-
-fun Route.functionMetadataRoutes() {
+fun Route.functionMetadataRoutes(
+    authService: AuthService,
+    functionMetadataService: FunctionMetadataService,
+) {
     route("/functions") {
         route("/{id}") {
             route("/metadata") {
@@ -26,7 +29,7 @@ fun Route.functionMetadataRoutes() {
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@get
                     }
-                    val metadata = FunctionMetadataService.getFunctionMetadata(id, null, null)
+                    val metadata = functionMetadataService.getFunctionMetadata(id, null, null)
                     call.respond(metadata)
                 }
                 post {
@@ -37,14 +40,14 @@ fun Route.functionMetadataRoutes() {
                         return@post
                     }
 
-                    if (!call.hasFunctionAccess(id)) {
+                    if (!authService.hasFunctionAccess(call.getUserId()!!, id)) {
                         logger.warn("Forbidden access attempt: post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.Forbidden)
                         return@post
                     }
 
                     val metadata = call.receive<CreateFunctionMetadataDTO>()
-                    FunctionMetadataService.addMetadataToFunction(id, metadata)
+                    functionMetadataService.addMetadataToFunction(id, metadata)
                     call.respond(HttpStatusCode.NoContent)
                 }
                 get("/access") {
@@ -53,7 +56,7 @@ fun Route.functionMetadataRoutes() {
                         return@get
                     }
 
-                    val hasAccess = call.hasFunctionAccess(id) || call.hasSuperUserAccess()
+                    val hasAccess = authService.hasFunctionAccess(call.getUserId()!!, id) || authService.hasSuperUserAccess(call.getUserId()!!)
                     call.respond(hasAccess)
                 }
             }
@@ -65,7 +68,7 @@ fun Route.functionMetadataRoutes() {
             val value = call.request.queryParameters["value"]
             val functionId = call.request.queryParameters["functionId"]?.toInt()
 
-            val metadata = FunctionMetadataService.getFunctionMetadata(functionId, key, value)
+            val metadata = functionMetadataService.getFunctionMetadata(functionId, key, value)
             call.respond(metadata)
         }
         get("indicator") {
@@ -73,19 +76,19 @@ fun Route.functionMetadataRoutes() {
                 logger.warn("Bad request: Invalid or missing 'functionId' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
             }
-            val key = call.request.queryParameters["key"] ?: run{
+            val key = call.request.queryParameters["key"] ?: run {
                 logger.warn("Bad request: Invalid or missing 'key' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
             }
             val value = call.request.queryParameters["value"]
 
-            val functions = FunctionMetadataService.getIndicators(key, value, functionId)
+            val functions = functionMetadataService.getIndicators(key, value, functionId)
             call.respond(functions)
         }
         route("/keys") {
             get {
                 val search = call.request.queryParameters["search"]
-                call.respond(FunctionMetadataService.getFunctionMetadataKeys(search))
+                call.respond(functionMetadataService.getFunctionMetadataKeys(search))
             }
         }
         route("/{id}") {
@@ -101,13 +104,13 @@ fun Route.functionMetadataRoutes() {
                 }
                 val updatedMetadata = call.receive<UpdateFunctionMetadataDTO>()
 
-                if (!call.hasMetadataAccess(id)) {
+                if (!authService.hasMetadataAccess(call.getUserId()!!, id)) {
                     logger.warn("Forbidden access attempt: patch request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@patch
                 }
 
-                FunctionMetadataService.updateMetadataValue(id, updatedMetadata)
+                functionMetadataService.updateMetadataValue(id, updatedMetadata)
                 call.respond(HttpStatusCode.NoContent)
             }
             delete {
@@ -118,13 +121,13 @@ fun Route.functionMetadataRoutes() {
                     return@delete
                 }
 
-                if (!call.hasMetadataAccess(id)) {
+                if (!authService.hasMetadataAccess(call.getUserId()!!, id)) {
                     logger.warn("Forbidden access attempt: delete request on metadata/{id}")
                     call.respond(HttpStatusCode.Forbidden)
                     return@delete
                 }
 
-                FunctionMetadataService.deleteMetadata(id)
+                functionMetadataService.deleteMetadata(id)
                 call.respond(HttpStatusCode.NoContent)
             }
             route("/function") {
