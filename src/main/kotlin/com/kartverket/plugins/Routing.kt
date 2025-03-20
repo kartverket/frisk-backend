@@ -1,10 +1,11 @@
 package com.kartverket.plugins
 
-import com.kartverket.DumpRow
 import com.kartverket.Database
 import com.kartverket.auth.AUTH_JWT
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.FunctionService
+import com.kartverket.functions.datadump.DataDumpService
+import com.kartverket.functions.datadump.dataDumpRoutes
 import com.kartverket.functions.functionRoutes
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.functionMetadataRoutes
@@ -18,11 +19,11 @@ import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 
 fun Application.configureRouting(
-    database: Database,
     authService: AuthService,
     functionService: FunctionService,
     functionMetadataService: FunctionMetadataService,
-    microsoftService: MicrosoftService
+    microsoftService: MicrosoftService,
+    dataDumpService: DataDumpService
 ) {
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
@@ -30,36 +31,12 @@ fun Application.configureRouting(
             functionRoutes(authService, functionService, functionMetadataService)
             functionMetadataRoutes(authService, functionMetadataService)
             microsoftRoutes(microsoftService)
-            get("/dump") {
-//                if (!call.hasSuperUserAccess()) {
-//                    call.respond(HttpStatusCode.Forbidden)
-//                    return@get
-//                }
-                val fileName = "data.csv"
-                call.response.header(
-                    HttpHeaders.ContentDisposition,
-                    ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, fileName).toString()
-                )
-
-                call.respondBytes(
-                    bytes = database.getDump().toCsv().toByteArray(Charsets.UTF_8),
-                    contentType = ContentType.Text.CSV.withCharset(Charsets.UTF_8)
-                )
-            }
+            dataDumpRoutes(dataDumpService)
         }
         route("/health") {
             get {
                 call.respondText("Up and running!", ContentType.Text.Plain)
             }
-        }
-    }
-}
-
-fun List<DumpRow>.toCsv(): String {
-    return buildString {
-        appendLine("id,name,description,path,key,value")
-        for (row in this@toCsv) {
-            appendLine("\"${row.id}\",\"${row.name}\",\"${row.description}\",\"${row.path}\",\"${row.key}\",\"${row.value}\"")
         }
     }
 }
