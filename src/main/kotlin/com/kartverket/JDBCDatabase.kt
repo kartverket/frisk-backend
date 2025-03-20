@@ -4,39 +4,16 @@ import com.kartverket.configuration.DatabaseConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.util.logging.KtorSimpleLogger
-import kotlinx.serialization.Serializable
 import org.flywaydb.core.Flyway
 import java.sql.Connection
-import java.sql.ResultSet
 
 interface Database {
-    fun getDump(): List<DumpRow>
     fun getConnection(): Connection
 }
 
 class JDBCDatabase(
     private val dataSource: HikariDataSource
 ) : Database {
-
-    override fun getDump(): List<DumpRow> {
-        val query =
-            """
-    select * from functions f
-    inner join function_metadata fm on fm.function_id = f.id
-    inner join function_metadata_keys fmk on fmk.id = fm.key_id
-""".trimIndent()
-        getConnection().use { connection ->
-            connection.prepareStatement(query).use { preparedStatement ->
-                val resultSet = preparedStatement.executeQuery()
-                return buildList {
-                    while (resultSet.next()) {
-                        add(resultSet.toDumpRow())
-                    }
-                }
-            }
-        }
-    }
-
     override fun getConnection(): Connection = dataSource.connection
 
     fun closePool() {
@@ -82,27 +59,5 @@ class JDBCDatabase(
     }
 }
 
-private fun ResultSet.toDumpRow(): DumpRow {
-    return DumpRow(
-        id = getInt("id"),
-        parentId = getInt("parent_id"),
-        name = getString("name"),
-        description = getString("description"),
-        path = getString("path"),
-        key = getString("key"),
-        value = getString("value")
-    )
-}
 
 
-
-@Serializable
-data class DumpRow(
-    val id: Int,
-    val name: String,
-    val description: String?,
-    val parentId: Int?,
-    val path: String,
-    val key: String,
-    val value: String,
-)
