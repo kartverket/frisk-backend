@@ -32,7 +32,7 @@ Du kan bruker docker desktop dersom du har det. Hvis ikke kan du bruke Colima. L
 ### Steg 4
 Etter å ha installert Colima, kan du starte det opp ved å kjøre denne kommandoen:
 
-`colima start`
+`colima start --network-address`
 
 ### Steg 5
 Når du har Colima eller Docker Desktop kjørende, kjør denne kommandoen i rotmappen til prosjektet:
@@ -55,13 +55,14 @@ Slik kan du sette opp på IntelliJ:
 ### Steg 2
 Du trenger å sette følgende miljøvariabler:
 ```
+ALLOWED_CORS_HOSTS
 baseUrl
 CLIENT_SECRET
 clientId
-DB_PASS
-DB_URL
-DB_USER
-environment
+DATABASE_PASSWORD
+DATABASE_USERNAME
+JDBC_URL
+SUPER_USER_GROUP_ID
 tenantId
 ```
 For å få tilgang til hemmelighetene, spør noen på teamet om å gi deg tilgang til 1Password vaulten.
@@ -73,3 +74,19 @@ Voila! Du skal nå kunne kjøre backend, gå inn på http://localhost:8080
 
 ### Til info
 - Kjør `docker compose down --volumes --remove-orphans` for å stoppe Docker Compose.
+
+## Kjøre testene
+
+For å kunne kjøre flere av testene lokalt, så må du ha en fungerende dockerinstallasjon.
+I tillegg, avhengig av oppsettet ditt, så er det noen spesifikke miljøvariabler som må settes.
+Hvis du bruker colima, sett følgende i .bashrc/.zshrc eller andre tilsvarende konfigurasjonsfiler for ditt shell;
+```shell
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+export TESTCONTAINERS_HOST_OVERRIDE=$(colima ls -j | jq -r '.address')
+export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+```
+
+Merk at det er viktig at colima startes med `--network-address` flagget, da det er trengs for å hente ut adressen til `TESTCONTAINERS_HOST_OVERRIDE`.
+
+Hvis du bruker noe annet, eksempelvis Podman eller Rancher, se dokumentasjonen til testcontainers; 
+https://java.testcontainers.org/supported_docker_environment/
