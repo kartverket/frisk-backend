@@ -5,6 +5,7 @@ import com.kartverket.configuration.DatabaseConfig
 import com.kartverket.configuration.EntraConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.functions.FunctionServiceImpl
+import com.kartverket.functions.datadump.DataDumpServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -30,11 +31,11 @@ class ApplicationTest {
             val mockDatabase = object : MockDatabase {}
             configureAPILayer(
                 exampleConfig,
-                mockDatabase,
                 object : MockAuthService {},
                 FunctionServiceImpl(mockDatabase),
                 FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
-                object : MockMicrosoftService {}
+                object : MockMicrosoftService {},
+                DataDumpServiceImpl(mockDatabase)
             )
             routing {
                 val publicEndpointsRegexList = listOf(
@@ -80,11 +81,11 @@ class ApplicationTest {
                 exampleConfig.copy(
                     allowedCORSHosts = listOf("test.com")
                 ),
-                mockDatabase,
                 object : MockAuthService {},
                 FunctionServiceImpl(mockDatabase),
                 FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
-                object : MockMicrosoftService {}
+                object : MockMicrosoftService {},
+                DataDumpServiceImpl(mockDatabase)
             )
         }
 

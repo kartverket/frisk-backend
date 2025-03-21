@@ -8,6 +8,8 @@ import com.kartverket.configuration.AppConfig
 import com.kartverket.configuration.FunctionHistoryCleanupConfig
 import com.kartverket.functions.FunctionService
 import com.kartverket.functions.FunctionServiceImpl
+import com.kartverket.functions.datadump.DataDumpService
+import com.kartverket.functions.datadump.DataDumpServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import com.kartverket.microsoft.MicrosoftService
@@ -76,7 +78,8 @@ fun Application.module() {
     val functionService = FunctionServiceImpl(database)
     val functionMetadataService = FunctionMetadataServiceImpl(database, microsoftService)
     val authService = AuthServiceImpl(config.authConfig.superUserGroupId, functionMetadataService, microsoftService)
-    configureAPILayer(config, database, authService, functionService, functionMetadataService, microsoftService)
+    val dataDumpService = DataDumpServiceImpl(database)
+    configureAPILayer(config, authService, functionService, functionMetadataService, microsoftService, dataDumpService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
     environment.monitor.subscribe(ApplicationStopped) {
@@ -86,14 +89,14 @@ fun Application.module() {
 
 fun Application.configureAPILayer(
     config: AppConfig,
-    database: Database,
     authService: AuthService,
     functionService: FunctionService,
     functionMetadataService: FunctionMetadataService,
-    microsoftService: MicrosoftService
+    microsoftService: MicrosoftService,
+    dataDumpService: DataDumpService
 ) {
     configureSerialization()
     configureCors(config)
     configureAuth(config.authConfig)
-    configureRouting(database, authService, functionService, functionMetadataService, microsoftService)
+    configureRouting(authService, functionService, functionMetadataService, microsoftService, dataDumpService)
 }

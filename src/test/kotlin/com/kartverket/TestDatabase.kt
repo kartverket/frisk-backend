@@ -1,9 +1,6 @@
 package com.kartverket
 
 import com.kartverket.configuration.DatabaseConfig
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 
 class TestDatabase {
