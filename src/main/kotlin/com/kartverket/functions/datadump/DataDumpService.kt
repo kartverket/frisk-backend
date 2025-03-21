@@ -9,7 +9,6 @@ import java.sql.ResultSet
 data class DumpRow(
     val id: Int,
     val name: String,
-    val description: String?,
     val parentId: Int?,
     val path: String,
     val metadata: Map<String, String>
@@ -27,7 +26,6 @@ class DataDumpServiceImpl(
             WITH data_raw AS (
                     SELECT f.id AS function_id,
                            f.name,
-                           f.description,
                            f.parent_id,
                            f.path,
                            fmk.key AS metadata_key_name,
@@ -36,10 +34,10 @@ class DataDumpServiceImpl(
                              INNER JOIN function_metadata fm ON fm.function_id = f.id
                              INNER JOIN function_metadata_keys fmk ON fmk.id = fm.key_id
                 )
-                SELECT function_id, name, description, parent_id, path,
+                SELECT function_id, name, parent_id, path,
                        jsonb_object_agg(metadata_key_name, metadata_value) AS metadata
                 FROM data_raw
-                GROUP BY function_id, name, description, parent_id, path
+                GROUP BY function_id, name, parent_id, path
         """.trimIndent()
 
         database.useStatement(query) { statement ->
@@ -57,7 +55,6 @@ class DataDumpServiceImpl(
             id = getInt("function_id"),
             parentId = getInt("parent_id"),
             name = getString("name"),
-            description = getString("description"),
             path = getString("path"),
             metadata = parseMetadata(getString("metadata")),
         )

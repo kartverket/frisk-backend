@@ -32,7 +32,7 @@ fun Route.dataDumpRoutes(
 }
 
 fun List<DumpRow>.toCsv(): String {
-    val headers = mutableSetOf("id", "name", "description", "path")
+    val headers = mutableSetOf("id", "name", "path")
     for (row in this) {
         headers.addAll(row.metadata.keys)
     }
@@ -46,7 +46,6 @@ fun List<DumpRow>.toCsv(): String {
                 val value = when (column) {
                     "id" -> row.id.toString()
                     "name" -> row.name
-                    "description" -> row.description ?: ""
                     "path" -> row.path
                     else -> row.metadata[column] ?: ""
                 }

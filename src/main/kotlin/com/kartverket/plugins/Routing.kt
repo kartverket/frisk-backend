@@ -1,6 +1,5 @@
 package com.kartverket.plugins
 
-import com.kartverket.Database
 import com.kartverket.auth.AUTH_JWT
 import com.kartverket.auth.AuthService
 import com.kartverket.functions.FunctionService
