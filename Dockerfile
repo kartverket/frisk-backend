@@ -1,11 +1,16 @@
 FROM gradle:8.8 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -x test
-ENV env=development
-FROM eclipse-temurin:21
-EXPOSE 8080:8080
-RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/backend.jar
+RUN gradle shadowJar --no-daemon
 
-ENTRYPOINT ["java", "-jar", "/app/backend.jar"]
+# Use a minimal JDK image to run the application
+FROM eclipse-temurin:21-jre-alpine
+RUN apk update && apk upgrade
+# Create a non-root
+RUN mkdir /app && adduser -D user && chown -R user /app
+EXPOSE 8080
+WORKDIR /app
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/frisk-backend.jar
+USER user
+
+ENTRYPOINT ["java","-jar","/app/frisk-backend.jar"]
