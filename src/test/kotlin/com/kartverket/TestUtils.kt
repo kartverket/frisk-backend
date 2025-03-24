@@ -2,16 +2,18 @@ package com.kartverket
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.kartverket.functions.dto.CreateFunctionDto
-import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
+import com.kartverket.auth.AUTH_JWT
+import com.kartverket.auth.AuthService
 import com.kartverket.functions.Function
 import com.kartverket.functions.FunctionService
 import com.kartverket.functions.FunctionServiceImpl
-import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
+import com.kartverket.functions.datadump.DataDumpService
+import com.kartverket.functions.datadump.DataDumpServiceImpl
+import com.kartverket.functions.dto.CreateFunctionDto
+import com.kartverket.functions.dto.CreateFunctionWithMetadataDto
 import com.kartverket.functions.metadata.FunctionMetadataService
-import com.kartverket.auth.AUTH_JWT
-import com.kartverket.auth.AuthService
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.functions.metadata.dto.CreateFunctionMetadataDTO
 import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.plugins.configureRouting
 import com.kartverket.plugins.configureSerialization
@@ -37,6 +39,7 @@ object TestUtils {
             testDatabase,
             microsoftService
         ),
+        dataDumpService: DataDumpService = DataDumpServiceImpl(testDatabase)
     ) {
         configureSerialization()
 
@@ -54,7 +57,13 @@ object TestUtils {
             }
         }
 
-        configureRouting(testDatabase, authService, functionService, functionMetadataService, microsoftService)
+        configureRouting(
+            authService,
+            functionService,
+            functionMetadataService,
+            microsoftService,
+            dataDumpService
+        )
     }
 
     fun generateTestToken(): String {
