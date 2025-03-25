@@ -1,4 +1,4 @@
-name: Build and deploy backend to SKIP
+name: Build and deploy backend to Fly and SKIP
 on:
   workflow_dispatch:
     inputs:
@@ -6,30 +6,16 @@ on:
         description: 'Commit hash to deploy'
         default: ''
         type: string
-      dev:
-        description: 'Deploy to dev'
-        required: true
-        type: boolean
-      prod:
-        description: 'Deploy to prod'
-        required: true
-        type: boolean
   pull_request:
     branches:
       - main
-    paths:
-      - src/**
-      - .github/workflows/skip-deploy.yml
-      - DockerfileForSkip
-      - gradle.properties
-      - build.gradle.kts
   push:
     branches:
       - main
     paths:
       - src/**
-      - .github/workflows/skip-deploy.yml
-      - DockerfileForSkip
+      - .github/workflows/deploy.yml
+      - Dockerfile
       - gradle.properties
       - build.gradle.kts
 
@@ -50,36 +36,14 @@ jobs:
       packages: write
     outputs:
       image_url: ${{ steps.setOutput.outputs.image_url }}
-
     steps:
       - name: Checkout code
-        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha == '') }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.commit_sha == '' }}
         uses: actions/checkout@v4
-
-      - name: Checkout code
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha == '' }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Checkout specific commit
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha == '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha != '' }}
         run: git checkout ${{ github.event.inputs.commit_sha }}
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          architecture: 'x64'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v3
-
-      - name: Execute Gradle build
-        run: ./gradlew shadowJar
 
       - name: Set tag
         id: set-tag
@@ -113,7 +77,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: DockerfileForSkip
+          file: Dockerfile
           push: ${{ !github.event.pull_request.draft }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -122,6 +86,51 @@ jobs:
         id: setOutput
         run: |
           echo "image_url=${{ env.REGISTRY }}/${{ github.repository }}@${{ steps.build-docker.outputs.digest }}" >> $GITHUB_OUTPUT
+
+
+  dependencygraph:
+    name: Generate dependency graph
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          architecture: 'x64'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v3
+
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          architecture: 'x64'
+
+      - name: test pull image
+        run: docker pull postgres:15-alpine
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      - name: Run Tests
+        run: ./gradlew test
 
   pharos:
     name: Run Pharos
@@ -138,10 +147,22 @@ jobs:
         with:
           image_url: ${{ needs.build.outputs.image_url }}
 
+  deploy-fly:
+    name: Deploy app
+    runs-on: ubuntu-latest
+    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    needs: [tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
   deploy-dev:
     name: Deploy to dev
-    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dev == 'true')) }}
-    needs: build
+    if: github.ref == 'refs/heads/main'
+    needs: [ deploy-fly, pharos ]
     runs-on: ubuntu-latest
     environment:
       name: dev
@@ -167,10 +188,11 @@ jobs:
           git commit -am "Update ${{ env.ARGO_VERSION_FILE }}"
           git push
 
+
   deploy-prod:
     name: Deploy to prod
-    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || (github.event_name == 'workflow_dispatch' && github.event.inputs.prod == 'true')) }}
-    needs: build
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-dev
     runs-on: ubuntu-latest
     environment:
       name: prod
