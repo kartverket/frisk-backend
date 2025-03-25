@@ -21,7 +21,7 @@ fun Route.functionRoutes(
 ) {
     route("/functions") {
         get {
-            logger.info("Received get on /functions")
+            logger.info("Tester")
             val search = call.request.queryParameters["search"]
             val funcs = functionService.getFunctions(search)
             call.respond(funcs)
