@@ -149,6 +149,7 @@ jobs:
 
   deploy-fly:
     name: Deploy app
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     needs: [tests]
