@@ -59,7 +59,6 @@ class FunctionRoutesTest {
                         return Function(
                             id = 0,
                             name = newFunction.name,
-                            description = newFunction.description,
                             parentId = 1,
                             path = "/functions",
                             orderIndex = 0
@@ -79,7 +78,7 @@ class FunctionRoutesTest {
 
         val request = CreateFunctionWithMetadataDto(
             function = CreateFunctionDto(
-                name = uniqueName, description = "desc", parentId = 1
+                name = uniqueName, parentId = 1
             ), metadata = listOf(metadata)
         )
 
@@ -138,7 +137,7 @@ class FunctionRoutesTest {
 
         val request = CreateFunctionWithMetadataDto(
             function = CreateFunctionDto(
-                name = "", description = "desc", parentId = 1
+                name = "", parentId = 1
             ), metadata = emptyList()
         )
 
@@ -161,7 +160,7 @@ class FunctionRoutesTest {
 
         val request = CreateFunctionWithMetadataDto(
             function = CreateFunctionDto(
-                name = uniqueName, description = "desc", parentId = 1
+                name = uniqueName, parentId = 1
             ), metadata = emptyList()
         )
 
@@ -179,7 +178,6 @@ class FunctionRoutesTest {
         val mockedFunction = Function(
             id = functionId,
             name = "Test Function",
-            description = "Test Description",
             path = "1.1",
             parentId = 1,
             orderIndex = 1
@@ -204,7 +202,6 @@ class FunctionRoutesTest {
         val fetchedFunction: Function = Json.decodeFromString<Function>(response.bodyAsText())
         assertEquals(functionId, fetchedFunction.id)
         assertEquals("Test Function", fetchedFunction.name)
-        assertEquals("Test Description", fetchedFunction.description)
         assertEquals("1.1", fetchedFunction.path)
         assertEquals(1, fetchedFunction.parentId)
         assertEquals(1, fetchedFunction.orderIndex)
@@ -317,7 +314,7 @@ class FunctionRoutesTest {
         val response = client.put("/functions/1234567913") {
             header(HttpHeaders.Authorization, "Bearer ${generateTestToken()}")
             contentType(ContentType.Application.Json)
-            setBody("""{"name": "Updated Name", "description": "Updated Description", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
+            setBody("""{"name": "Updated Name", "parentId": 2, "orderIndex": 1, "path": "1.1"}""")
         }
 
         assertEquals(HttpStatusCode.NotFound, response.status)
@@ -332,7 +329,6 @@ class FunctionRoutesTest {
 
         val updatedFunctionDto = UpdateFunctionDto(
             name = "${UUID.randomUUID()}",
-            description = "Updated Description",
             parentId = 1,
             orderIndex = 1,
             path = ""
@@ -448,7 +444,6 @@ class FunctionRoutesTest {
                 name = "${UUID.randomUUID()}",
                 orderIndex = 1,
                 path = "/function/children",
-                description = "bladibla"
             )
         )
         application {

@@ -26,7 +26,7 @@ class DataDumpServiceTest {
         // Create function
         val functionName = "${UUID.randomUUID()}"
         val createFunctionDto = CreateFunctionDto(
-            name = functionName, description = "desc", parentId = 1
+            name = functionName, parentId = 1
         )
         val createdFunction = functionService.createFunction(createFunctionDto)!!
         val fetchedFunction = functionService.getFunction(createdFunction.id)

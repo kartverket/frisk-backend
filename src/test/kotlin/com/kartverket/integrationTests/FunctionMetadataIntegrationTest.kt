@@ -44,7 +44,7 @@ class FunctionMetadataIntegrationTest {
         val functionName = "${UUID.randomUUID()}"
 
         val createFunctionDto = CreateFunctionDto(
-            name = functionName, description = "desc", parentId = 1
+            name = functionName, parentId = 1
         )
 
         var response = client.post("/functions") {

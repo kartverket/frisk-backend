@@ -77,7 +77,6 @@ object TestUtils {
     suspend fun createFunction(client: HttpClient, parentId: Int): Function {
         val function = CreateFunctionDto(
             name = "${UUID.randomUUID()}",
-            description = "desc",
             parentId = parentId
         )
 
