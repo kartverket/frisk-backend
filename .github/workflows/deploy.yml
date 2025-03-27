@@ -104,10 +104,10 @@ jobs:
           architecture: 'x64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v3
+        uses: gradle/actions/dependency-submission@v4
 
   tests:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
         run: docker pull postgres:15-alpine
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        uses: gradle/actions/setup-gradle@4a417b5b1a01db0b076987546b67f8de18e7d340 # v4.0.0
 
       - name: Run Tests
         run: ./gradlew test
