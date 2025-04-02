@@ -2,14 +2,15 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlin_version: String by project
+val ktor_version: String by project
 val logback_version: String by project
 val postgres_version: String by project
 val h2_version: String by project
 val exposed_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.0.20"
-    id("io.ktor.plugin") version "2.3.12"
+    kotlin("jvm") version "2.1.20"
+    id("io.ktor.plugin") version "3.1.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.20"
     id("org.flywaydb.flyway") version "9.22.0" // or latest
     id("com.gradleup.shadow") version "8.3.0"
@@ -54,15 +55,12 @@ dependencies {
     implementation("com.microsoft.graph:microsoft-graph:6.16.0")
     implementation("io.ktor:ktor-client-core")
     implementation("io.ktor:ktor-client-cio")
-    implementation("io.ktor:ktor-client-cio-jvm:2.3.12")
-    testImplementation("io.ktor:ktor-server-test-host-jvm")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("io.ktor:ktor-server-test-host")
+    implementation("io.ktor:ktor-client-cio-jvm:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
     testImplementation("io.mockk:mockk:1.13.16")
-    testImplementation("org.testcontainers:testcontainers:1.20.5")
-    testImplementation("org.apache.commons:commons-compress:1.26.0")
-    testImplementation("org.testcontainers:postgresql:1.20.5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
+    testImplementation("org.testcontainers:testcontainers:1.20.6")
+    testImplementation("org.testcontainers:postgresql:1.20.6")
 }
 
 flyway {
