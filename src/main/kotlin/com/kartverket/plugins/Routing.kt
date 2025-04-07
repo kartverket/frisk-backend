@@ -13,9 +13,9 @@ import com.kartverket.microsoft.microsoftRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun Application.configureRouting(
     authService: AuthService,
@@ -23,19 +23,17 @@ fun Application.configureRouting(
     functionMetadataService: FunctionMetadataService,
     microsoftService: MicrosoftService,
     dataDumpService: DataDumpService
-) {
-    routing {
-        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
-        authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
-            functionRoutes(authService, functionService, functionMetadataService)
-            functionMetadataRoutes(authService, functionMetadataService)
-            microsoftRoutes(microsoftService)
-            dataDumpRoutes(dataDumpService)
-        }
-        route("/health") {
-            get {
-                call.respondText("Up and running!", ContentType.Text.Plain)
-            }
+): RoutingRoot = routing {
+    swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+    authenticate(AUTH_JWT, strategy = AuthenticationStrategy.Required) {
+        functionRoutes(authService, functionService, functionMetadataService)
+        functionMetadataRoutes(authService, functionMetadataService)
+        microsoftRoutes(microsoftService)
+        dataDumpRoutes(dataDumpService)
+    }
+    route("/health") {
+        get {
+            call.respondText("Up and running!", ContentType.Text.Plain)
         }
     }
 }
