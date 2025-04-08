@@ -1,12 +1,9 @@
 import com.kartverket.*
-import com.kartverket.configuration.AppConfig
-import com.kartverket.configuration.AuthConfig
-import com.kartverket.configuration.DatabaseConfig
-import com.kartverket.configuration.EntraConfig
-import com.kartverket.configuration.FunctionHistoryCleanupConfig
+import com.kartverket.configuration.*
 import com.kartverket.functions.FunctionServiceImpl
 import com.kartverket.functions.datadump.DataDumpServiceImpl
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
+import com.kartverket.plugins.configureRouting
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
@@ -37,39 +34,46 @@ class ApplicationTest {
                 object : MockMicrosoftService {},
                 DataDumpServiceImpl(mockDatabase)
             )
-            routing {
-                val publicEndpointsRegexList = listOf(
-                    Regex("^/swagger"),
-                    Regex("^/health")
-                )
 
-                // Get all registered routes and filter out those that match any of the public endpoint regex patterns
-                val nonPublicRoutes = getAllRoutes().filter { route ->
-                    publicEndpointsRegexList.none { regex ->
-                        regex.containsMatchIn(route.toString())
-                    }
+            val routingRoot = configureRouting(
+                object : MockAuthService {},
+                FunctionServiceImpl(mockDatabase),
+                FunctionMetadataServiceImpl(mockDatabase, object : MockMicrosoftService {}),
+                object : MockMicrosoftService {},
+                DataDumpServiceImpl(mockDatabase)
+            )
+
+            val publicEndpointsRegexList = listOf(
+                Regex("^/swagger"),
+                Regex("^/health")
+            )
+
+            // Get all registered routes and filter out those that match any of the public endpoint regex patterns
+            val nonPublicRoutes = routingRoot.getAllRoutes().filter { route ->
+                publicEndpointsRegexList.none { regex ->
+                    regex.containsMatchIn(route.toString())
                 }
-
-                assertAll("Authentication in routes", nonPublicRoutes.map { route ->
-                    // The `assertionForRoute@` is a label to enable us to return from the function if we find
-                    // the Authenticate plugin.
-                    assertionForRoute@{
-                        var currRoute: Route? = route
-                        // The Authenticate plugin that we are looking for is possibly defined earlier in
-                        // the route hierarchy, so we traverse upwards via the parent property.
-                        while (currRoute != null) {
-                            // Checks if the Authenticate plugin is enabled in the current routes pipeline
-                            if (currRoute.items.any { it.name == "Authenticate" }) {
-                                return@assertionForRoute
-                            }
-                            currRoute = currRoute.parent
-                        }
-
-                        fail("$route does not have authentication enabled")
-                    }
-                }
-                )
             }
+
+            assertAll("Authentication in routes", nonPublicRoutes.map { route ->
+                // The `assertionForRoute@` is a label to enable us to return from the function if we find
+                // the Authenticate plugin.
+                assertionForRoute@{
+                    var currRoute: RoutingNode? = route
+                    // The Authenticate plugin that we are looking for is possibly defined earlier in
+                    // the route hierarchy, so we traverse upwards via the parent property.
+                    while (currRoute != null) {
+                        // Checks if the Authenticate plugin is enabled in the current routes pipeline
+                        if (currRoute.items.any { it.name == "Authenticate" }) {
+                            return@assertionForRoute
+                        }
+                        currRoute = currRoute.parent
+                    }
+
+                    fail("$route does not have authentication enabled")
+                }
+            }
+            )
         }
     }
 

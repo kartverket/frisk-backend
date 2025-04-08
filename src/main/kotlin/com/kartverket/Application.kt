@@ -14,7 +14,9 @@ import com.kartverket.functions.metadata.FunctionMetadataService
 import com.kartverket.functions.metadata.FunctionMetadataServiceImpl
 import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.microsoft.MicrosoftServiceImpl
-import com.kartverket.plugins.*
+import com.kartverket.plugins.configureCors
+import com.kartverket.plugins.configureRouting
+import com.kartverket.plugins.configureSerialization
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.application.*
 import io.ktor.server.config.*
@@ -27,9 +29,11 @@ import kotlin.time.Duration.Companion.days
 fun main() {
     embeddedServer(
         Netty,
-        environment = applicationEngineEnvironment {
+        module = Application::module,
+        environment = applicationEnvironment {
             config = HoconApplicationConfig(ConfigFactory.load("application.conf"))
-            module(Application::module)
+        },
+        configure = {
             connector {
                 port = 8080
                 host = "0.0.0.0"
@@ -82,7 +86,7 @@ fun Application.module() {
     configureAPILayer(config, authService, functionService, functionMetadataService, microsoftService, dataDumpService)
     launchCleanupJob(config.functionHistoryCleanup, database)
 
-    environment.monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopped) {
         database.closePool()
     }
 }
