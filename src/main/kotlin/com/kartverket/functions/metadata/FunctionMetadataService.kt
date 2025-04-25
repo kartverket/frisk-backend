@@ -185,7 +185,6 @@ class FunctionMetadataServiceImpl(
                         Function(
                             id = resultSet.getInt("id"),
                             name = resultSet.getString("name"),
-                            description = resultSet.getString("description"),
                             path = resultSet.getString("path"),
                             parentId = resultSet.getInt("parent_id"),
                             orderIndex = resultSet.getInt("order_index"),

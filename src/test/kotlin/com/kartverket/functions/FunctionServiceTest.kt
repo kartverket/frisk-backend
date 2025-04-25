@@ -19,7 +19,7 @@ class FunctionServiceTest {
 
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
 
         val fetched = functionService.getFunction(created.id)
 
@@ -30,7 +30,7 @@ class FunctionServiceTest {
     fun `fetch children for function`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         val (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(created.id, child1.parentId)
@@ -49,7 +49,7 @@ class FunctionServiceTest {
     fun `update where first child leaves parent`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -71,7 +71,7 @@ class FunctionServiceTest {
     fun `update where middle child leaves parent`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -93,8 +93,8 @@ class FunctionServiceTest {
     fun `update where last child leaves parent`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
-        val randomfunc = functionService.createFunction(CreateFunctionDto(name = "test4", description = "test", parentId = 1))
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
+        val randomfunc = functionService.createFunction(CreateFunctionDto(name = "test4", parentId = 1))
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -118,7 +118,7 @@ class FunctionServiceTest {
     fun `move children from end to start of order`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -140,7 +140,7 @@ class FunctionServiceTest {
     fun `move children from start to end of order`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -162,7 +162,7 @@ class FunctionServiceTest {
     fun `move children from start to middle of order`() {
         val functionService = FunctionServiceImpl(database)
 
-        val created = functionService.createFunction(CreateFunctionDto(name = "test", description = "test", parentId = 1))!!
+        val created = functionService.createFunction(CreateFunctionDto(name = "test", parentId = 1))!!
         var (child1, child2, child3) = createThreeChildren(functionService, created)
 
         assertEquals(0, child1.orderIndex)
@@ -187,21 +187,18 @@ class FunctionServiceTest {
         val child1 = functionService.createFunction(
             CreateFunctionDto(
                 name = "test1",
-                description = "test",
                 parentId = created.id
             )
         )!!
         val child2 = functionService.createFunction(
             CreateFunctionDto(
                 name = "test2",
-                description = "test",
                 parentId = created.id
             )
         )!!
         val child3 = functionService.createFunction(
             CreateFunctionDto(
                 name = "test3",
-                description = "test",
                 parentId = created.id
             )
         )!!
@@ -239,7 +236,6 @@ class FunctionServiceTest {
 
 fun Function.toUpdateDto() = UpdateFunctionDto(
     name = this.name,
-    description = this.description,
     parentId = this.parentId,
     path = this.path,
     orderIndex = this.orderIndex,

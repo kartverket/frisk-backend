@@ -13,7 +13,6 @@ import java.sql.Types
 data class Function(
     val id: Int,
     val name: String,
-    val description: String?,
     val parentId: Int?,
     val path: String,
     val orderIndex: Int
@@ -90,12 +89,11 @@ class FunctionServiceImpl(
 
     override fun createFunction(newFunction: CreateFunctionDto): Function? {
         logger.info("Creating function with: ${newFunction.name}")
-        val query = "INSERT INTO functions (name, description, parent_id) VALUES (?, ?, ?) RETURNING *"
+        val query = "INSERT INTO functions (name, parent_id) VALUES (?, ?) RETURNING *"
         logger.debug("Preparing database query: $query")
         database.useStatement(query) { statement ->
             statement.setString(1, newFunction.name)
-            statement.setString(2, newFunction.description)
-            statement.setInt(3, newFunction.parentId)
+            statement.setInt(2, newFunction.parentId)
             val resultSet = statement.executeQuery()
             if (!resultSet.next()) {
                 return null
@@ -111,17 +109,16 @@ class FunctionServiceImpl(
         logger.info("Updating function with id: $id")
         var result: Function? = null
 
-        val query = "SELECT * FROM update_function(?, ?, ?, ?, ?);"
+        val query = "SELECT * FROM update_function(?, ?, ?, ?);"
         logger.debug("Preparing database query: $query")
         database.useStatement(query) { statement ->
             statement.setInt(1, id)
             statement.setInt(2, updatedFunction.orderIndex)
             statement.setString(3, updatedFunction.name)
-            statement.setString(4, updatedFunction.description)
             if (updatedFunction.parentId != null) {
-                statement.setInt(5, updatedFunction.parentId)
+                statement.setInt(4, updatedFunction.parentId)
             } else {
-                statement.setNull(5, Types.INTEGER)
+                statement.setNull(4, Types.INTEGER)
             }
 
             val resultSet = statement.executeQuery()
@@ -150,7 +147,6 @@ class FunctionServiceImpl(
         return Function(
             id = getInt("id"),
             name = getString("name"),
-            description = getString("description"),
             parentId,
             path = getString("path"),
             orderIndex = getInt("order_index")

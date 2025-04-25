@@ -1,11 +1,11 @@
-FROM gradle:8.8 AS build
+FROM gradle:8.13 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle shadowJar --no-daemon
 
 # Use a minimal JDK image to run the application
 FROM eclipse-temurin:21-jre-alpine
-RUN apk update && apk upgrade
+RUN apk upgrade --no-cache
 # Create a non-root
 RUN mkdir /app && adduser -D user && chown -R user /app
 EXPOSE 8080

@@ -16,7 +16,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,7 +43,6 @@ class FunctionRoutesIntegrationTest {
 
         val function = CreateFunctionDto(
             name = functionName,
-            description = "desc",
             parentId = 1
         )
 
@@ -64,7 +62,6 @@ class FunctionRoutesIntegrationTest {
         val createdFunction: Function = Json.decodeFromString(response.bodyAsText())
 
         assertEquals(functionName, createdFunction.name)
-        assertEquals(function.description, createdFunction.description)
         assertEquals(function.parentId, createdFunction.parentId)
 
         response = client.get("/functions/${createdFunction.id}") {
@@ -77,12 +74,10 @@ class FunctionRoutesIntegrationTest {
 
         val readFunction = Json.decodeFromString<Function>(response.bodyAsText())
         assertEquals(functionName, readFunction.name)
-        assertEquals(function.description, readFunction.description)
         assertEquals(function.parentId, readFunction.parentId)
 
         val updatedFunctionDto = UpdateFunctionDto(
             name = "${UUID.randomUUID()}",
-            description = "Updated Description",
             parentId = createdFunction.parentId,
             orderIndex = createdFunction.orderIndex,
             path = createdFunction.path
@@ -98,7 +93,6 @@ class FunctionRoutesIntegrationTest {
 
         val updatedFunction: Function = Json.decodeFromString(response.bodyAsText())
         assertEquals(updatedFunctionDto.name, updatedFunction.name)
-        assertEquals(updatedFunctionDto.description, updatedFunction.description)
         assertEquals(updatedFunctionDto.parentId, updatedFunction.parentId)
         assertEquals(updatedFunctionDto.orderIndex, updatedFunction.orderIndex)
         assertEquals(updatedFunctionDto.path, updatedFunction.path)
