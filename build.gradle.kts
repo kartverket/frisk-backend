@@ -13,7 +13,7 @@ plugins {
     id("io.ktor.plugin") version "3.1.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
     id("org.flywaydb.flyway") version "9.22.0" // or latest
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "com.kartverket"
