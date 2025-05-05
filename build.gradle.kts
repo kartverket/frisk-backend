@@ -12,7 +12,7 @@ plugins {
     kotlin("jvm") version "2.1.20"
     id("io.ktor.plugin") version "3.1.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
-    id("org.flywaydb.flyway") version "9.22.0" // or latest
+    id("org.flywaydb.flyway") version "11.8.0" 
     id("com.gradleup.shadow") version "8.3.0"
 }
 
@@ -43,7 +43,8 @@ dependencies {
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("com.h2database:h2:$h2_version")
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.flywaydb:flyway-core:9.16.0")
+    implementation("org.flywaydb:flyway-core:11.8.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.8.0")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
