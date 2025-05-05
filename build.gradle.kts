@@ -13,7 +13,7 @@ plugins {
     id("io.ktor.plugin") version "3.1.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
     id("org.flywaydb.flyway") version "11.8.0"
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "com.kartverket"
@@ -53,7 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
     implementation("com.azure:azure-identity:1.+")
     implementation("net.minidev:json-smart:2.5.2") /* kan slettes når Azure oppdaterer denne selv*/
-    implementation("com.microsoft.graph:microsoft-graph:6.16.0")
+    implementation("com.microsoft.graph:microsoft-graph:6.36.0")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-cio-jvm:$ktor_version")
@@ -61,7 +61,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
     testImplementation("io.mockk:mockk:1.14.0")
     testImplementation("org.testcontainers:testcontainers:1.20.6")
-    testImplementation("org.testcontainers:postgresql:1.20.6")
+    testImplementation("org.testcontainers:postgresql:1.21.0")
 }
 
 flyway {
