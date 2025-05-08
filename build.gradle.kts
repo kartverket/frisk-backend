@@ -10,7 +10,7 @@ val exposed_version: String by project
 
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("io.ktor.plugin") version "3.1.2"
+    id("io.ktor.plugin") version "3.1.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
     id("org.flywaydb.flyway") version "11.8.0"
     id("com.gradleup.shadow") version "8.3.6"
@@ -59,7 +59,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio-jvm:$ktor_version")
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
-    testImplementation("io.mockk:mockk:1.14.0")
+    testImplementation("io.mockk:mockk:1.14.2")
     testImplementation("org.testcontainers:testcontainers:1.20.6")
     testImplementation("org.testcontainers:postgresql:1.21.0")
 }
