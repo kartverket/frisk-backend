@@ -12,7 +12,7 @@ plugins {
     kotlin("jvm") version "2.1.20"
     id("io.ktor.plugin") version "3.1.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
-    id("org.flywaydb.flyway") version "11.8.0"
+    id("org.flywaydb.flyway") version "11.8.1"
     id("com.gradleup.shadow") version "8.3.6"
 }
 
