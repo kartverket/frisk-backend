@@ -15,4 +15,6 @@
     <logger name="Database" level="INFO"/>
     <logger name="FunctionDependencyService" level="INFO"/>
     <logger name="FunctionService" level="INFO"/>
+    <logger name="FunctionMetadataService" level="INFO"/>
+    <logger name="FunctionMetadataRoutes" level="INFO"/>
 </configuration>
