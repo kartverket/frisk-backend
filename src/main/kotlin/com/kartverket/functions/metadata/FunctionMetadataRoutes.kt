@@ -12,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.logging.*
 
-val logger = KtorSimpleLogger("FunctionRoutes")
+val logger = KtorSimpleLogger("FunctionMetadataRoutes")
 
 
 fun Route.functionMetadataRoutes(
@@ -23,23 +23,25 @@ fun Route.functionMetadataRoutes(
         route("/{id}") {
             route("/metadata") {
                 get {
+                    logger.info("Received get request on functions/{id}/metadata")
                     val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         logger.warn("Invalid id parameter in Received get request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@get
                     }
+
                     val metadata = functionMetadataService.getFunctionMetadata(id, null, null)
                     call.respond(metadata)
                 }
                 post {
+                    logger.info("Received post request on functions/{id}/metadata")
                     val id = call.parameters["id"]?.toIntOrNull()
                     if (id == null) {
                         logger.warn("Invalid id parameter in Received post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id!")
                         return@post
                     }
-
                     if (!authService.hasFunctionAccess(call.getUserId()!!, id)) {
                         logger.warn("Forbidden access attempt: post request on functions/{id}/metadata")
                         call.respond(HttpStatusCode.Forbidden)
@@ -51,7 +53,10 @@ fun Route.functionMetadataRoutes(
                     call.respond(HttpStatusCode.NoContent)
                 }
                 get("/access") {
+                    logger.info("Received post request on functions/{id}/metadata/access")
+
                     val id = call.parameters["id"]?.toInt() ?: run {
+                        logger.warn("Invalid function id")
                         call.respond(HttpStatusCode.BadRequest, "Invalid function id")
                         return@get
                     }
@@ -64,6 +69,7 @@ fun Route.functionMetadataRoutes(
     }
     route("/metadata") {
         get {
+            logger.info("Received get request on /metadata")
             val key = call.request.queryParameters["key"]
             val value = call.request.queryParameters["value"]
             val functionId = call.request.queryParameters["functionId"]?.toInt()
@@ -72,6 +78,7 @@ fun Route.functionMetadataRoutes(
             call.respond(metadata)
         }
         get("indicator") {
+            logger.info("Received get request on /metadata/indicator")
             val functionId = call.request.queryParameters["functionId"]?.toIntOrNull() ?: run {
                 logger.warn("Bad request: Invalid or missing 'functionId' parameter on /indicator")
                 throw BadRequestException("Invalid function key!")
@@ -87,6 +94,7 @@ fun Route.functionMetadataRoutes(
         }
         route("/keys") {
             get {
+                logger.info("Received get request on /metadata/keys")
                 val search = call.request.queryParameters["search"]
                 call.respond(functionMetadataService.getFunctionMetadataKeys(search))
             }
@@ -96,6 +104,7 @@ fun Route.functionMetadataRoutes(
                 call.respond(HttpStatusCode.NotImplemented)
             }
             patch {
+                logger.info("Received patch request on /metadata/id")
                 val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
                     logger.error("Invalid id parameter in patch request on metadata/{id}")
@@ -114,9 +123,10 @@ fun Route.functionMetadataRoutes(
                 call.respond(HttpStatusCode.NoContent)
             }
             delete {
+                logger.info("Received delete request on /metadata/{id}")
                 val id = call.parameters["id"]?.toIntOrNull()
                 if (id == null) {
-                    logger.error("Invalid id parameter in delete request on metadata/{id}")
+                    logger.warn("Invalid id parameter in delete request on metadata/{id}")
                     call.respond(HttpStatusCode.BadRequest, "Invalid metadata id!")
                     return@delete
                 }
