@@ -9,6 +9,7 @@ import com.kartverket.microsoft.MicrosoftService
 import com.kartverket.useStatement
 import com.microsoft.graph.models.odataerrors.ODataError
 import java.sql.ResultSet
+import io.ktor.util.logging.KtorSimpleLogger
 
 enum class SpecialMetadataKey(val key: String) {
     TEAM("team")
@@ -28,8 +29,10 @@ class FunctionMetadataServiceImpl(
     private val database: Database,
     private val microsoftService: MicrosoftService,
 ) : FunctionMetadataService {
+    private val logger = KtorSimpleLogger("FunctionMetadataService")
 
     override fun getFunctionMetadataById(id: Int): FunctionMetadata? {
+        logger.info("Getting metadata with id: $id")
         val query = """
             SELECT fm.id, fm.function_id, fmk.key, fm.value 
             FROM function_metadata fm 
@@ -53,6 +56,7 @@ class FunctionMetadataServiceImpl(
     }
 
     override fun getFunctionMetadata(functionId: Int?, key: String?, value: String?): List<FunctionMetadata> {
+        logger.info("Getting metadata for function: $functionId on key: $key and value: $value")
         require(!(functionId == null && key == null)) { "functionId and key cannot both be null" }
 
         val baseQuery = """
@@ -99,6 +103,8 @@ class FunctionMetadataServiceImpl(
 
 
     override fun getFunctionMetadataKeys(search: String?): List<String> {
+        logger.info("Getting metadatakeys for function with search query: $search")
+
         val query = if (search != null) {
             "SELECT key FROM function_metadata_keys WHERE LOWER(key) LIKE ?"
         } else {
@@ -120,6 +126,7 @@ class FunctionMetadataServiceImpl(
     }
 
     override fun addMetadataToFunction(functionId: Int, newMetadata: CreateFunctionMetadataDTO) {
+        logger.info("Adding metadata: (key: ${newMetadata.key}, value: ${newMetadata.value}) to function: $functionId")
         require(isValueValidForKey(newMetadata.key, newMetadata.value)) {
             "The value ${newMetadata.value} is not a valid for key ${newMetadata.key}"
         }
@@ -143,6 +150,7 @@ class FunctionMetadataServiceImpl(
     }
 
     override fun updateMetadataValue(id: Int, updatedMetadata: UpdateFunctionMetadataDTO) {
+        logger.info("Updating metadata (id: $id): value: ${updatedMetadata.value}")
         val query = "UPDATE function_metadata SET value = ? WHERE id = ?"
         database.useStatement(query) { statement ->
             statement.setString(1, updatedMetadata.value)
@@ -152,6 +160,7 @@ class FunctionMetadataServiceImpl(
     }
 
     override fun deleteMetadata(id: Int) {
+        logger.info("Deleting metadata (id: $id)")
         val query = "DELETE FROM function_metadata WHERE id = ?"
         database.useStatement(query) { statement ->
             statement.setInt(1, id)
@@ -160,6 +169,7 @@ class FunctionMetadataServiceImpl(
     }
 
     override fun getIndicators(key: String, value: String?, functionId: Int): List<Function> {
+        logger.info("Getting indicators (key: $key, value: $value, functionId: $functionId)")
         var query = "WITH fpath AS (SELECT path FROM functions WHERE id = ?)" +
                 "SELECT * FROM functions AS f " +
                 "INNER JOIN function_metadata AS fm ON f.id = fm.function_id " +
