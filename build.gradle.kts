@@ -9,7 +9,7 @@ val h2_version: String by project
 val exposed_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.1.21"
     id("io.ktor.plugin") version "3.1.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
     id("org.flywaydb.flyway") version "11.8.2"
