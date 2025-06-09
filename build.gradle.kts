@@ -43,7 +43,7 @@ dependencies {
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("com.h2database:h2:$h2_version")
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.flywaydb:flyway-core:11.8.2")
+    implementation("org.flywaydb:flyway-core:11.9.1")
     implementation("org.flywaydb:flyway-database-postgresql:11.8.2")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
