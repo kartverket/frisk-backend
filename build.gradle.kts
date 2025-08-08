@@ -14,7 +14,7 @@ val microsoft_graph_version = "6.42.1"
 
 plugins {
     kotlin("jvm") version "2.1.21"
-    id("io.ktor.plugin") version "3.1.3"
+    id("io.ktor.plugin") version "3.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
     id("org.flywaydb.flyway") version "11.10.0"
     id("com.gradleup.shadow") version "8.3.6"
@@ -55,7 +55,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
-    implementation("com.azure:azure-identity:1.+")
+    implementation("com.azure:azure-identity:1.16.3")
     implementation("net.minidev:json-smart:2.5.2") /* kan slettes når Azure oppdaterer denne selv*/
     implementation("com.microsoft.graph:microsoft-graph:$microsoft_graph_version")
     implementation("io.ktor:ktor-client-core:$ktor_version")
