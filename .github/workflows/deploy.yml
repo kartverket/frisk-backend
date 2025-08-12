@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Checkout code
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.commit_sha == '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout specific commit
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha != '' }}
@@ -95,7 +95,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/setup-java@v4
         with:
@@ -116,7 +116,7 @@ jobs:
         image: docker:dind
         options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -154,7 +154,7 @@ jobs:
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     needs: [tests]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only
         env:
@@ -176,7 +176,7 @@ jobs:
           scope: kartverket/skvis-apps
           identity: frisk-backend
       - name: Checkout skvis-apps
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: kartverket/skvis-apps
           ref: main
@@ -206,7 +206,7 @@ jobs:
           scope: kartverket/skvis-apps
           identity: frisk-backend
       - name: Checkout skvis-apps
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: kartverket/skvis-apps
           ref: main
