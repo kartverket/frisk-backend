@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: Checkout code
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.commit_sha == '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout specific commit
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha != '' }}
@@ -100,11 +100,13 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '24'
           architecture: 'x64'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v4
@@ -120,14 +122,16 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '24'
           architecture: 'x64'
 
       - name: test pull image
         run: docker pull postgres:15-alpine
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@4a417b5b1a01db0b076987546b67f8de18e7d340 # v4.0.0
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
       - name: Run Tests
         run: ./gradlew test
@@ -143,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Run Pharos"
-        uses: kartverket/pharos@v0.4.0
+        uses: kartverket/pharos@v0.4.1
         with:
           image_url: ${{ needs.build.outputs.image_url }}
 
@@ -154,7 +158,7 @@ jobs:
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     needs: [tests]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only
         env:
@@ -176,7 +180,7 @@ jobs:
           scope: kartverket/skvis-apps
           identity: frisk-backend
       - name: Checkout skvis-apps
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: kartverket/skvis-apps
           ref: main

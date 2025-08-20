@@ -6,25 +6,24 @@ val ktor_version: String by project
 val logback_version: String by project
 val postgres_version: String by project
 val h2_version: String by project
-val exposed_version: String by project
 val testcontainers_version = "1.21.3"
-val mockk_version = "1.14.3"
+val mockk_version = "1.14.5"
 val flyway_version = "11.10.1"
 val microsoft_graph_version = "6.42.1"
 
 plugins {
-    kotlin("jvm") version "2.1.21"
+    kotlin("jvm") version "2.2.10"
     id("io.ktor.plugin") version "3.2.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
-    id("org.flywaydb.flyway") version "11.10.0"
-    id("com.gradleup.shadow") version "8.3.6"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
+    id("org.flywaydb.flyway") version "11.11.1"
+    id("com.gradleup.shadow") version "9.0.2"
 }
 
 group = "com.kartverket"
 version = "0.0.1"
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(24)
 }
 
 application {
