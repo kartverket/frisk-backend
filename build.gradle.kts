@@ -23,7 +23,7 @@ group = "com.kartverket"
 version = "0.0.1"
 
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(21)
 }
 
 application {
@@ -35,6 +35,14 @@ application {
 
 repositories {
     mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
+            useVersion("4.2.4.Final") // Sårbarhet i io.netty:netty-codec-http2. 2025-08-20
+        }
+    }
 }
 
 dependencies {
