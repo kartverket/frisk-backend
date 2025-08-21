@@ -28,3 +28,13 @@ spec:
     info:
         title: frisk-backend API
     paths:
+---
+apiVersion: "backstage.io/v1alpha1"
+kind: "System"
+metadata:
+  name: "funksjon-skjema-register"
+  title: "Funksjon- og skjemaregister"
+  labels:
+    gcp-project-id: "skvis-prod-9329"
+spec:
+  owner: "skvis"
