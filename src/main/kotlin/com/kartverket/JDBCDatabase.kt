@@ -13,7 +13,7 @@ interface Database {
 }
 
 class JDBCDatabase(
-    private val dataSource: HikariDataSource
+    private val dataSource: HikariDataSource,
 ) : Database {
     override fun getConnection(): Connection = dataSource.connection
 
@@ -22,18 +22,15 @@ class JDBCDatabase(
     }
 
     private fun migrate() {
-        val flywayConfig = Flyway.configure()
-        flywayConfig.dataSource(dataSource)
-
-        flywayConfig.locations("classpath:db/migration")
-        val flyway = flywayConfig.load()
-
+        val flyway = Flyway.configure()
+            .dataSource(dataSource)
+            .validateMigrationNaming(true)
+            .load()
         val result = flyway.migrate()
         if (result.success) {
             logger.info("Database migrations applied successfully.")
         } else {
-            logger.error("Failed to apply database migrations.")
-            // Handle the failure appropriately
+            throw IllegalStateException("Failed to apply database migrations.")
         }
     }
 
@@ -60,8 +57,6 @@ class JDBCDatabase(
     }
 }
 
-inline fun <T> Database.useStatement(query: String, block: (statement: PreparedStatement) -> T): T {
-    return getConnection().use { connection ->
-        connection.prepareStatement(query).use(block)
-    }
+inline fun <T> Database.useStatement(query: String, block: (statement: PreparedStatement) -> T): T = getConnection().use { connection ->
+    connection.prepareStatement(query).use(block)
 }

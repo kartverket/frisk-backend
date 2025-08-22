@@ -1,4 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlin_version: String by project
@@ -8,7 +7,7 @@ val postgres_version: String by project
 val h2_version: String by project
 val testcontainers_version = "1.21.3"
 val mockk_version = "1.14.5"
-val flyway_version = "11.10.1"
+val flyway_version = "11.11.1"
 val microsoft_graph_version = "6.42.1"
 
 plugins {
@@ -82,11 +81,13 @@ flyway {
     locations = arrayOf("filesystem:src/main/resources/db/migration")
 }
 
-tasks {
-    withType<ShadowJar> {
+tasks.shadowJar {
         isZip64 = true
         mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+
+tasks{
     withType<Test> {
         testLogging {
             showCauses = true
