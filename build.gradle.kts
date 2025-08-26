@@ -8,7 +8,7 @@ val h2_version: String by project
 val testcontainers_version = "1.21.3"
 val mockk_version = "1.14.5"
 val flyway_version = "11.11.1"
-val microsoft_graph_version = "6.42.1"
+val microsoft_graph_version = "6.51.0"
 
 plugins {
     kotlin("jvm") version "2.2.10"
