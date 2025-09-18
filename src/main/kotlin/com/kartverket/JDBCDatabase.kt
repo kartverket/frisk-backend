@@ -43,6 +43,8 @@ class JDBCDatabase(
                 username = databaseConfig.username
                 password = databaseConfig.password
                 driverClassName = "org.postgresql.Driver"
+                databaseConfig.minimumIdle?.let { minimumIdle = it }
+                databaseConfig.maxPoolSize?.let {maximumPoolSize = it }
             }
             logger.info("Database jdbcUrl: ${hikariConfig.jdbcUrl}")
             return try {

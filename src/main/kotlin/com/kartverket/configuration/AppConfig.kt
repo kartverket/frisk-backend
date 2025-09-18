@@ -23,13 +23,12 @@ data class AppConfig(
                         ?: throw IllegalStateException("Unable to initialize app config \"functionHistoryCleanup.deleteOlderThanDays\""),
                 ),
                 allowedCORSHosts = allowedCORSHosts,
-                databaseConfig = DatabaseConfig.load(),
+                databaseConfig = DatabaseConfig.load(config),
                 entraConfig = EntraConfig.load(),
                 authConfig = AuthConfig.load()
             )
         }
     }
-
 }
 
 data class AuthConfig(
@@ -63,12 +62,16 @@ class DatabaseConfig(
     val jdbcUrl: String,
     val username: String,
     val password: String,
+    val minimumIdle: Int?,
+    val maxPoolSize: Int?,
 ) {
     companion object {
-        fun load(): DatabaseConfig = DatabaseConfig(
+        fun load(config: ApplicationConfig): DatabaseConfig = DatabaseConfig(
             jdbcUrl = getConfigFromEnvOrThrow("JDBC_URL"),
             username = getConfigFromEnvOrThrow("DATABASE_USERNAME"),
-            password = getConfigFromEnvOrThrow("DATABASE_PASSWORD")
+            password = getConfigFromEnvOrThrow("DATABASE_PASSWORD"),
+            minimumIdle = config.propertyOrNull("database.minimumIdle")?.getString()?.toInt(),
+            maxPoolSize = config.propertyOrNull("database.maximumPoolSize")?.getString()?.toInt()
         )
     }
 }
