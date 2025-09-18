@@ -62,8 +62,8 @@ class DatabaseConfig(
     val jdbcUrl: String,
     val username: String,
     val password: String,
-    val minimumIdle: Int?,
-    val maxPoolSize: Int?,
+    val minimumIdle: Int? = null,
+    val maxPoolSize: Int? = null,
 ) {
     companion object {
         fun load(config: ApplicationConfig): DatabaseConfig = DatabaseConfig(
