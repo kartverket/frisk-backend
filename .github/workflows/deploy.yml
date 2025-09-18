@@ -1,4 +1,4 @@
-name: Build and deploy backend to Fly and SKIP
+name: Build and deploy backend to SKIP
 on:
   workflow_dispatch:
     inputs:
@@ -151,23 +151,10 @@ jobs:
         with:
           image_url: ${{ needs.build.outputs.image_url }}
 
-  deploy-fly:
-    name: Deploy app
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
-    needs: [tests]
-    steps:
-      - uses: actions/checkout@v5
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
   deploy-dev:
     name: Deploy to dev
     if: github.ref == 'refs/heads/main'
-    needs: [ build, deploy-fly, pharos ]
+    needs: [ build, pharos ]
     runs-on: ubuntu-latest
     environment:
       name: dev

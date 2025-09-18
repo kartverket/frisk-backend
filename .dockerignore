@@ -1,4 +1,3 @@
-# flyctl launch added from .gitignore
 **/.gradle
 !**/gradle/wrapper/gradle-wrapper.jar
 !**/**/src/main/**/build
@@ -36,7 +35,7 @@ nbdist
 **/.vscode
 
 
-# flyctl launch added from .idea/.gitignore
+
 # Default ignored files
 .idea/shelf
 .idea/workspace.xml
@@ -45,4 +44,3 @@ nbdist
 # Datasource local storage ignored files
 .idea/dataSources
 .idea/dataSources.local.xml
-fly.toml
