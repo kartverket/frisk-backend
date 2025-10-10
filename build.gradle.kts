@@ -11,7 +11,7 @@ val flyway_version = "11.11.2"
 val microsoft_graph_version = "6.51.0"
 
 plugins {
-    kotlin("jvm") version "2.2.10"
+    kotlin("jvm") version "2.2.20"
     id("io.ktor.plugin") version "3.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
     id("org.flywaydb.flyway") version "11.11.2"
