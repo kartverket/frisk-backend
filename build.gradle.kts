@@ -7,7 +7,7 @@ val postgres_version: String by project
 val h2_version: String by project
 val testcontainers_version = "1.21.3"
 val mockk_version = "1.14.5"
-val flyway_version = "11.11.2"
+val flyway_version = "11.14.0"
 val microsoft_graph_version = "6.51.0"
 
 plugins {
