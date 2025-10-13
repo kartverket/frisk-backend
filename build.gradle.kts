@@ -61,7 +61,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
-    implementation("com.azure:azure-identity:1.17.0")
+    implementation("com.azure:azure-identity:1.18.0")
     implementation("net.minidev:json-smart:2.5.2") /* kan slettes når Azure oppdaterer denne selv*/
     implementation("com.microsoft.graph:microsoft-graph:$microsoft_graph_version")
     implementation("io.ktor:ktor-client-core:$ktor_version")
