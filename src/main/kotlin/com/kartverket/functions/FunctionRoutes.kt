@@ -63,13 +63,12 @@ fun Route.functionRoutes(
                 call.respond(function)
             }
             put {
-                logger.info("Received put on /functions/{id}")
                 val id = call.parameters["id"]?.toIntOrNull() ?: run {
                     logger.warn("Invalid id parameter: ${call.parameters["id"]}")
                     call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                     return@put
                 }
-
+                logger.info("Received put on /functions/$id from user ${call.getUserId()}")
                 if (!authService.hasFunctionAccess(call.getUserId()!!, id) && !authService.hasSuperUserAccess(call.getUserId()!!)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
@@ -85,13 +84,12 @@ fun Route.functionRoutes(
                 call.respond(function)
             }
             delete {
-                logger.info("Received delete on /functions/{id}")
                 val id = call.parameters["id"]?.toIntOrNull() ?: run {
                     logger.warn("Invalid id parameter: ${call.parameters["id"]}")
                     call.respond(HttpStatusCode.BadRequest, "You have to supply a valid integer id")
                     return@delete
                 }
-
+                logger.info("Received delete on /functions/$id from user ${call.getUserId()}")
                 if (!authService.hasFunctionAccess(call.getUserId()!!, id) && !authService.hasSuperUserAccess(call.getUserId()!!)) {
                     logger.warn("Forbidden access attempt")
                     call.respond(HttpStatusCode.Forbidden)
