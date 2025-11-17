@@ -1,40 +1,43 @@
-# nonk8s
-apiVersion: "backstage.io/v1alpha1"
-kind: "Component"
+apiVersion: backstage.io/v1alpha1
+kind: Component
 metadata:
-  name: "frisk-backend"
+  name: frisk-backend
   tags:
-  - "internal"
+    - internal
 spec:
-  type: "service"
-  lifecycle: "production"
-  owner: "skvis"
-  system: "funksjon-skjema-register"
+  type: service
+  lifecycle: production
+  owner: skvis
+  system: funksjon-skjema-register
   providesApis:
-  - "frisk-backend-api"
+    - frisk-backend-api
+  consumesApis:
+    - regelrett-api
+
 ---
-apiVersion: "backstage.io/v1alpha1"
-kind: "API"
+apiVersion: backstage.io/v1alpha1
+kind: API
 metadata:
-  name: "frisk-backend-api"
+  name: frisk-backend-api
   tags:
-  - "internal"
+    - internal
 spec:
-  type: "openapi"
-  lifecycle: "production"
-  owner: "skvis"
+  type: openapi
+  lifecycle: production
+  owner: skvis
   definition: |
     openapi: "3.0.0"
     info:
         title: frisk-backend API
     paths:
+
 ---
-apiVersion: "backstage.io/v1alpha1"
-kind: "System"
+apiVersion: backstage.io/v1alpha1
+kind: System
 metadata:
-  name: "funksjon-skjema-register"
-  title: "Funksjon- og skjemaregister"
+  name: funksjon-skjema-register
+  title: Funksjon- og skjemaregister
   labels:
-    gcp-project-id: "skvis-prod-9329"
+    gcp-project-id: skvis-prod-9329
 spec:
-  owner: "skvis"
+  owner: skvis
