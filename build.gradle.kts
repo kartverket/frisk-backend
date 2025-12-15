@@ -13,7 +13,7 @@ val microsoft_graph_version = "6.51.0"
 plugins {
     kotlin("jvm") version "2.2.20"
     id("io.ktor.plugin") version "3.2.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21"
     id("org.flywaydb.flyway") version "11.14.0"
     id("com.gradleup.shadow") version "9.2.2"
 }
