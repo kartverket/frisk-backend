@@ -104,12 +104,12 @@ jobs:
           architecture: 'x64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v4
+        uses: gradle/actions/dependency-submission@v5
 
   tests:
     runs-on: ubuntu-latest
@@ -129,7 +129,7 @@ jobs:
         run: docker pull postgres:15-alpine
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
