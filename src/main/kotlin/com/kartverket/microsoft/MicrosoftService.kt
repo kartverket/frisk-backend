@@ -15,6 +15,7 @@ data class TeamDTO(
 interface MicrosoftService {
     fun getMemberGroups(userId: String): List<TeamDTO>
     fun getGroup(groupId: String): TeamDTO
+    fun getAllGroups(): List<TeamDTO>
 }
 
 class MicrosoftServiceImpl(
@@ -22,6 +23,16 @@ class MicrosoftServiceImpl(
 ) : MicrosoftService {
     override fun getMemberGroups(userId: String): List<TeamDTO> {
         val groups = graphClient.users().byUserId(userId).memberOf().graphGroup().get().value
+
+        return groups.map {
+            it.toTeamDTO()
+        }
+    }
+
+    override fun getAllGroups(): List<TeamDTO> {
+        val groups = graphClient.groups().get { requestConfig ->
+            requestConfig.queryParameters.top = 999
+        }.value
 
         return groups.map {
             it.toTeamDTO()
