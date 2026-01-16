@@ -32,5 +32,16 @@ fun Route.microsoftRoutes(microsoftService: MicrosoftService) {
                 }
             }
         }
+
+        route("/allTeams") {
+            get {
+                val userId = call.getUserId() ?: run {
+                    call.respond(HttpStatusCode.Forbidden)
+                    return@get
+                }
+                val groups = microsoftService.getAllGroups()
+                call.respond(groups)
+            }
+        }
     }
 }
