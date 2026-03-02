@@ -104,12 +104,12 @@ jobs:
           architecture: 'x64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v4
+        uses: gradle/actions/dependency-submission@v5
 
   tests:
     runs-on: ubuntu-latest
@@ -129,7 +129,7 @@ jobs:
         run: docker pull postgres:15-alpine
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: "8.14.3" # Quotes required to prevent YAML converting to number
 
@@ -161,7 +161,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+      - uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo-sts
         with:
           scope: kartverket/skvis-apps
@@ -191,7 +191,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+      - uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo-sts
         with:
           scope: kartverket/skvis-apps
