@@ -38,8 +38,14 @@ repositories {
 
 configurations.all {
     resolutionStrategy.eachDependency {
-        if (requested.group == "io.netty" && requested.name == "netty-codec-http2") {
-            useVersion("4.2.4.Final") // Sårbarhet i io.netty:netty-codec-http2. 2025-08-20
+        if (requested.group == "io.netty" && requested.name in listOf("netty-codec-http2", "netty-codec-http", "netty-codec-compression")) {
+            useVersion("4.2.10.Final") // Sårbarhet i io.netty (CVE CRLF-injection, DoS). 2026-03-02
+        }
+        if (requested.group == "org.apache.commons" && requested.name == "commons-compress") {
+            useVersion("1.28.0") // Sårbarhet i org.apache.commons:commons-compress (DoS). 2026-03-02
+        }
+        if (requested.group == "org.apache.logging.log4j" && requested.name == "log4j-core") {
+            useVersion("2.25.3") // Sårbarhet i org.apache.logging.log4j:log4j-core (TLS hostname). 2026-03-02
         }
     }
 }
@@ -62,7 +68,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
     implementation("com.azure:azure-identity:1.18.1")
-    implementation("net.minidev:json-smart:2.5.2") /* kan slettes når Azure oppdaterer denne selv*/
+    implementation("net.minidev:json-smart:2.6.0") /* kan slettes når Azure oppdaterer denne selv*/
     implementation("com.microsoft.graph:microsoft-graph:$microsoft_graph_version")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
