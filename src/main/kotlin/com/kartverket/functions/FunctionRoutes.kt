@@ -117,8 +117,10 @@ fun Route.functionRoutes(
                     return@get
                 }
 
-                val hasAccess = authService.hasFunctionAccess(call.getUserId()!!, id) || authService.hasSuperUserAccess(call.getUserId()!!)
-                call.respond(hasAccess)
+                //val hasAccess = authService.hasFunctionAccess(call.getUserId()!!, id) || authService.hasSuperUserAccess(call.getUserId()!!)
+                //call.respond(hasAccess)
+                call.respond(false)
+
             }
         }
     }
