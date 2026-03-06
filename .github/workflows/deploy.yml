@@ -154,7 +154,7 @@ jobs:
   deploy-dev:
     name: Deploy to dev
     if: github.ref == 'refs/heads/main'
-    needs: [ build, pharos ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     environment:
       name: dev
