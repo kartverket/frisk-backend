@@ -6,13 +6,13 @@ metadata:
     - internal
 spec:
   type: service
-  lifecycle: production
+  lifecycle: deprecated
   owner: skvis
-  system: funksjon-skjema-register
+  system: system:default/funksjon-skjema-register
   providesApis:
-    - frisk-backend-api
+    - api:default/frisk-backend-api
   consumesApis:
-    - regelrett-api
+    - api:default/regelrett-api
 
 ---
 apiVersion: backstage.io/v1alpha1
